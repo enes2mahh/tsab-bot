@@ -1,0 +1,27 @@
+{
+  "name": "tsab-wa-server",
+  "version": "1.0.0",
+  "description": "WhatsApp Baileys Server for Tsab Bot",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "latest",
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "socket.io": "^4.7.0",
+    "qrcode": "^1.5.3",
+    "@supabase/supabase-js": "^2.39.0",
+    "bull": "^4.12.0",
+    "ioredis": "^5.3.0",
+    "pino": "^8.17.0",
+    "pino-pretty": "^10.3.0",
+    "dotenv": "^16.0.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
