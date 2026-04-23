@@ -67,7 +67,11 @@ function RegisterForm() {
     })
 
     if (error) {
-      setError(error.message === 'User already registered' ? 'هذا البريد الإلكتروني مسجّل مسبقاً' : 'حدث خطأ، يرجى المحاولة مجدداً')
+      // Show actual error for debugging
+      const msg = error.message === 'User already registered'
+        ? 'هذا البريد الإلكتروني مسجّل مسبقاً'
+        : `خطأ: ${error.message}`
+      setError(msg)
       setLoading(false)
     } else {
       setSuccess(true)
