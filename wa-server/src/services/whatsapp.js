@@ -29,20 +29,36 @@ let campaignWorkerRunning = false
 class WhatsAppService {
   // ========== INIT DEVICE ==========
   async initDevice(deviceId, userId = null) {
+    console.log(`[initDevice] ${deviceId} user=${userId}`)
+
     // If already running, just trigger a fresh QR if needed
     if (sessions.has(deviceId)) {
       const existing = sessions.get(deviceId)
       // If already connected, do nothing
       if (existing?.user) {
+        console.log(`[initDevice] ${deviceId} already connected`)
         return { alreadyConnected: true }
       }
+      // Stale session - cleanup before recreating
+      console.log(`[initDevice] ${deviceId} has stale session, cleaning up`)
+      try { existing.end?.() } catch {}
+      sessions.delete(deviceId)
     }
 
     const sessionDir = path.join(process.cwd(), 'sessions', deviceId)
-    if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true })
+    try {
+      if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true })
+    } catch (err) {
+      console.error(`[initDevice] Cannot create session dir: ${err.message}`)
+      throw new Error(`Cannot create session directory: ${err.message}`)
+    }
 
+    console.log(`[initDevice] ${deviceId} loading auth state...`)
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir)
+
+    console.log(`[initDevice] ${deviceId} fetching Baileys version...`)
     const { version } = await fetchLatestBaileysVersion()
+    console.log(`[initDevice] ${deviceId} Baileys version:`, version)
 
     const sock = makeWASocket({
       version,
@@ -69,9 +85,11 @@ class WhatsAppService {
 
       // QR received
       if (qr) {
+        console.log(`[${deviceId}] 📷 QR raw received`)
         try {
           const qrBase64 = await QRCode.toDataURL(qr, { width: 320, margin: 1 })
           pendingQRs.set(deviceId, { qr: qrBase64, expiresAt: Date.now() + 60000 })
+          console.log(`[${deviceId}] ✅ QR cached (${qrBase64.length} chars)`)
 
           // Resolve waiters
           const waiters = qrWaiters.get(deviceId) || []

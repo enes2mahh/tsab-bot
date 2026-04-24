@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
+// Vercel Hobby default is 10s - we need up to 60s for cold-start Baileys
+export const maxDuration = 60
+
 // POST /api/devices/qr - Request QR from WA server
 export async function POST(req: NextRequest) {
   const supabase = await createServerClient()
@@ -43,8 +46,8 @@ export async function POST(req: NextRequest) {
         'Authorization': `Bearer ${process.env.WA_SERVER_SECRET}`,
       },
       body: JSON.stringify({ deviceId: device.id, userId: device.user_id }),
-      // Wait long enough for QR to be generated
-      signal: AbortSignal.timeout(20000),
+      // Wait long enough for QR to be generated on cold-start
+      signal: AbortSignal.timeout(45000),
     })
 
     const data = await res.json()

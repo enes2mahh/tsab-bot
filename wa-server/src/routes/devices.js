@@ -19,28 +19,36 @@ router.post('/init', async (req, res) => {
   }
 })
 
-// POST /devices/qr - Get QR (waits up to 15s for QR to be generated)
+// POST /devices/qr - Get QR (waits up to 40s for QR to be generated)
 router.post('/qr', async (req, res) => {
   const { deviceId } = req.body
   if (!deviceId) return res.status(400).json({ error: 'deviceId required' })
 
   try {
+    console.log(`[QR] Request for device: ${deviceId}`)
+
     // Already connected? skip
     if (whatsappService.isConnected(deviceId)) {
+      console.log(`[QR] Device ${deviceId} already connected`)
       return res.json({ success: true, alreadyConnected: true })
     }
 
     // Init session if not started, then wait for QR
+    console.log(`[QR] Initializing device ${deviceId}...`)
     await whatsappService.initDevice(deviceId, null)
-    const qr = await whatsappService.waitForQR(deviceId, 15000)
+
+    console.log(`[QR] Waiting for QR (up to 40s)...`)
+    const qr = await whatsappService.waitForQR(deviceId, 40000)
 
     if (!qr) {
-      return res.status(504).json({ error: 'QR generation timed out' })
+      console.warn(`[QR] Timeout for device ${deviceId}`)
+      return res.status(504).json({ error: 'QR generation timed out - try again in a moment' })
     }
 
+    console.log(`[QR] ✅ QR generated for ${deviceId}`)
     res.json({ success: true, qr })
   } catch (err) {
-    console.error('QR route error:', err)
+    console.error('[QR] Route error:', err)
     res.status(500).json({ error: err.message || 'Failed to generate QR' })
   }
 })
