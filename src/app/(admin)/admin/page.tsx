@@ -100,7 +100,7 @@ export default function AdminPage() {
         <div className="card">
           <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>روابط سريعة</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            [
+            {[
               { href: '/admin/analytics', label: '📈 التحليلات المتقدمة', desc: 'إحصاءات شاملة عن المنصة' },
               { href: '/admin/users', label: '👥 إدارة المستخدمين', desc: 'عرض وإدارة كل المستخدمين' },
               { href: '/admin/plans', label: '📦 إدارة الخطط', desc: 'إضافة وتعديل خطط الاشتراك' },
