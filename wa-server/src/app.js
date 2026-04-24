@@ -5,7 +5,10 @@ const http = require('http')
 const { Server } = require('socket.io')
 const pino = require('pino')
 
-const logger = pino({ transport: { target: 'pino-pretty' } })
+// Use pretty logs only in dev (when pino-pretty is installed)
+const logger = process.env.NODE_ENV === 'development'
+  ? pino({ transport: { target: 'pino-pretty' } })
+  : pino()
 const { whatsappService } = require('./services/whatsapp')
 const devicesRouter = require('./routes/devices')
 const messagesRouter = require('./routes/messages')
