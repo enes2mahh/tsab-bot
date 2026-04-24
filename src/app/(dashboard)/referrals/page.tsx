@@ -172,6 +172,37 @@ export default function ReferralsPage() {
           </table>
         )}
       </div>
+
+      {/* Withdrawals History */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>سجل السحوبات ({data.withdrawals?.length || 0})</h3>
+        </div>
+        {(!data.withdrawals || data.withdrawals.length === 0) ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '14px' }}>
+            <Banknote size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
+            <p>لا توجد عمليات سحب بعد</p>
+          </div>
+        ) : (
+          <table className="table-cosmic">
+            <thead><tr><th>المبلغ</th><th>البنك</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+            <tbody>
+              {data.withdrawals.map((w: any) => (
+                <tr key={w.id}>
+                  <td style={{ fontSize: '15px', fontWeight: 600, color: '#10B981' }}>{w.amount} ريال</td>
+                  <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{w.bank_details?.bank_name || '—'}</td>
+                  <td>
+                    <span className={`badge badge-${w.status === 'completed' ? 'emerald' : w.status === 'pending' ? 'yellow' : 'red'}`}>
+                      {w.status === 'completed' ? 'مكتمل' : w.status === 'pending' ? 'معلق' : 'مرفوض'}
+                    </span>
+                  </td>
+                  <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(w.created_at).toLocaleDateString('ar-SA')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   )
 }

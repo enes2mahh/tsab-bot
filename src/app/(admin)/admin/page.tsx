@@ -13,6 +13,7 @@ export default function AdminPage() {
   useEffect(() => {
     const supabase = createClient()
     const today = new Date().toISOString().slice(0, 10)
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
     Promise.all([
       supabase.from('profiles').select('id, created_at', { count: 'exact' }),
@@ -20,17 +21,22 @@ export default function AdminPage() {
       supabase.from('devices').select('id, status', { count: 'exact' }),
       supabase.from('devices').select('id', { count: 'exact' }).eq('status', 'connected'),
       supabase.from('messages').select('id', { count: 'exact' }).gte('created_at', today),
-      supabase.from('subscriptions').select('plan_id, plans(name_ar)', { count: 'exact' }).in('status', ['trial', 'active']),
-    ]).then(([users, newUsers, allDevices, connectedDevices, msgs, subs]) => {
+      supabase.from('messages').select('id', { count: 'exact' }).gte('created_at', monthStart),
+      supabase.from('subscriptions').select('plan_id, plans(name_ar, price)', { count: 'exact' }).in('status', ['trial', 'active']),
+      supabase.from('subscriptions').select('plans(price)').in('status', ['active']).gte('created_at', today),
+      supabase.from('subscriptions').select('plans(price)').in('status', ['active']).gte('created_at', monthStart),
+    ]).then(([users, newUsers, allDevices, connectedDevices, msgsToday, msgsMonth, subs, revenueToday, revenueMonth]) => {
+      const revToday = (revenueToday.data || []).reduce((s: number, r: any) => s + (r.plans?.price || 0), 0)
+      const revMonth = (revenueMonth.data || []).reduce((s: number, r: any) => s + (r.plans?.price || 0), 0)
       setStats({
         users: users.count || 0,
         newToday: newUsers.count || 0,
         activeDevices: connectedDevices.count || 0,
         totalDevices: allDevices.count || 0,
-        messagesToday: msgs.count || 0,
-        messagesMonth: 0,
-        revenueToday: 0,
-        revenueMonth: 0,
+        messagesToday: msgsToday.count || 0,
+        messagesMonth: msgsMonth.count || 0,
+        revenueToday: revToday,
+        revenueMonth: revMonth,
       })
 
       const planCounts: Record<string, number> = {}
@@ -48,8 +54,10 @@ export default function AdminPage() {
   const cards = [
     { label: 'إجمالي المستخدمين', value: stats.users, sub: `+${stats.newToday} اليوم`, color: '#7C3AED', icon: <Users size={20} /> },
     { label: 'الأجهزة المتصلة', value: stats.activeDevices, sub: `من ${stats.totalDevices} إجمالي`, color: '#10B981', icon: <Smartphone size={20} /> },
-    { label: 'رسائل اليوم', value: stats.messagesToday, sub: 'رسالة مرسلة ووردة', color: '#2563EB', icon: <MessageSquare size={20} /> },
+    { label: 'رسائل اليوم', value: stats.messagesToday, sub: `${stats.messagesMonth.toLocaleString('ar')} هذا الشهر`, color: '#2563EB', icon: <MessageSquare size={20} /> },
     { label: 'اشتراكات نشطة', value: planDist.reduce((s, p) => s + p.value, 0), sub: 'trial + active', color: '#F59E0B', icon: <Crown size={20} /> },
+    { label: 'إيرادات اليوم', value: `${stats.revenueToday} ريال`, sub: 'من الاشتراكات الجديدة', color: '#10B981', icon: <DollarSign size={20} /> },
+    { label: 'إيرادات الشهر', value: `${stats.revenueMonth} ريال`, sub: 'إجمالي الشهر', color: '#7C3AED', icon: <DollarSign size={20} /> },
   ]
 
   return (
@@ -59,7 +67,7 @@ export default function AdminPage() {
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>نظرة عامة شاملة على المنصة</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
         {cards.map(card => (
           <div key={card.label} className="stat-card" style={{ borderTopColor: card.color }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -92,8 +100,10 @@ export default function AdminPage() {
         <div className="card">
           <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>روابط سريعة</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {[
+            [
+              { href: '/admin/analytics', label: '📈 التحليلات المتقدمة', desc: 'إحصاءات شاملة عن المنصة' },
               { href: '/admin/users', label: '👥 إدارة المستخدمين', desc: 'عرض وإدارة كل المستخدمين' },
+              { href: '/admin/plans', label: '📦 إدارة الخطط', desc: 'إضافة وتعديل خطط الاشتراك' },
               { href: '/admin/codes', label: '🔑 أكواد التفعيل', desc: 'إنشاء وإدارة الأكواد' },
               { href: '/admin/tickets', label: '🎫 التذاكر والدعم', desc: 'تذاكر المستخدمين' },
               { href: '/admin/referrals', label: '💰 الإحالات والسحوبات', desc: 'طلبات السحب المعلقة' },

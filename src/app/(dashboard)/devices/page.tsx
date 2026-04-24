@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Smartphone, Settings, RefreshCw, Trash2, X, CheckCircle, Wifi, WifiOff, AlertCircle, ExternalLink } from 'lucide-react'
+import { Plus, Smartphone, Settings, RefreshCw, Trash2, X, CheckCircle, Wifi, WifiOff, AlertCircle, ExternalLink, Bot } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Device {
@@ -315,12 +315,55 @@ function AddDeviceModal({ onClose, onAdded }: { onClose: () => void; onAdded: (d
   )
 }
 
+// ===== AI SETTINGS MODAL =====
+function AISettingsModal({ device, onClose, onSaved }: { device: Device; onClose: () => void; onSaved: () => void }) {
+  const [aiEnabled, setAiEnabled] = useState(device.ai_enabled || false)
+  const [prompt, setPrompt] = useState(device.ai_prompt || '')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    await createClient().from('devices').update({ ai_enabled: aiEnabled, ai_system_prompt: prompt || null }).eq('id', device.id)
+    setSaving(false)
+    onSaved()
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="glass" style={{ borderRadius: '20px', padding: '32px', maxWidth: '480px', width: '95%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>إعدادات الذكاء الاصطناعي</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+        </div>
+        <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>🤖 جهاز: <strong style={{ color: 'var(--text-primary)' }}>{device.name}</strong> — {device.phone || 'لا يوجد رقم'}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '14px', background: aiEnabled ? 'rgba(124,58,237,0.1)' : 'var(--bg-secondary)', border: `1px solid ${aiEnabled ? 'var(--accent-violet)' : 'var(--border)'}`, borderRadius: '12px' }}>
+            <input type="checkbox" checked={aiEnabled} onChange={e => setAiEnabled(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent-violet)' }} />
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>تفعيل الرد بالذكاء الاصطناعي</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>عند عدم وجود رد تلقائي مطابق، يرد Gemini AI</div>
+            </div>
+          </label>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>System Prompt مخصص (اختياري)</label>
+            <textarea className="input-cosmic" rows={4} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="اتركه فارغاً لاستخدام الافتراضي..." style={{ resize: 'vertical' }} />
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>مثال: أنت مساعد لمتجر إلكتروني، أجب عن المنتجات والأسعار فقط.</p>
+          </div>
+          <button onClick={handleSave} disabled={saving} className="btn-primary" style={{ justifyContent: 'center' }}>{saving ? 'جاري الحفظ...' : '💾 حفظ إعدادات AI'}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ===== MAIN PAGE =====
 export default function DevicesPage() {
   const [devices, setDevices] = useState<Device[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [qrDeviceId, setQrDeviceId] = useState<string | null>(null)
+  const [aiDevice, setAiDevice] = useState<Device | null>(null)
   const [deviceLimit, setDeviceLimit] = useState(3)
 
   const fetchDevices = async () => {
@@ -524,31 +567,10 @@ export default function DevicesPage() {
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {device.status === 'disconnected' && (
-                        <button
-                          onClick={() => setQrDeviceId(device.id)}
-                          style={{ padding: '6px', background: 'rgba(124,58,237,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#A78BFA' }}
-                          title="إعادة الاتصال"
-                        >
-                          <RefreshCw size={14} />
-                        </button>
-                      )}
-                      {device.status === 'connected' && (
-                        <button
-                          onClick={() => handleDisconnect(device.id)}
-                          style={{ padding: '6px', background: 'rgba(245,158,11,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#F59E0B' }}
-                          title="قطع الاتصال"
-                        >
-                          <WifiOff size={14} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(device.id)}
-                        style={{ padding: '6px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#EF4444' }}
-                        title="حذف"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <button onClick={() => setAiDevice(device)} style={{ padding: '6px', background: device.ai_enabled ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: device.ai_enabled ? '#A78BFA' : 'var(--text-muted)' }} title="إعدادات AI"><Bot size={14} /></button>
+                      {device.status === 'disconnected' && (<button onClick={() => setQrDeviceId(device.id)} style={{ padding: '6px', background: 'rgba(124,58,237,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#A78BFA' }} title="إعادة الاتصال"><RefreshCw size={14} /></button>)}
+                      {device.status === 'connected' && (<button onClick={() => handleDisconnect(device.id)} style={{ padding: '6px', background: 'rgba(245,158,11,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#F59E0B' }} title="قطع الاتصال"><WifiOff size={14} /></button>)}
+                      <button onClick={() => handleDelete(device.id)} style={{ padding: '6px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#EF4444' }} title="حذف"><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -572,6 +594,7 @@ export default function DevicesPage() {
           onConnected={fetchDevices}
         />
       )}
+      {aiDevice && <AISettingsModal device={aiDevice} onClose={() => setAiDevice(null)} onSaved={fetchDevices} />}
 
       <style jsx global>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

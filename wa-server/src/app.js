@@ -10,6 +10,7 @@ const { whatsappService } = require('./services/whatsapp')
 const devicesRouter = require('./routes/devices')
 const messagesRouter = require('./routes/messages')
 const campaignsRouter = require('./routes/campaigns')
+const warmerRouter = require('./routes/warmer')
 const { authMiddleware } = require('./middleware/auth')
 
 const app = express()
@@ -39,6 +40,7 @@ app.use(authMiddleware)
 app.use('/devices', devicesRouter)
 app.use('/messages', messagesRouter)
 app.use('/campaigns', campaignsRouter)
+app.use('/warmer', warmerRouter)
 
 // Socket.IO
 io.on('connection', (socket) => {

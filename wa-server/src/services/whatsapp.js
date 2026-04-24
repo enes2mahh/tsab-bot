@@ -185,6 +185,7 @@ class WhatsAppService {
     })
 
     // Check auto_replies
+    let autoReplied = false
     const { data: replies } = await supabase
       .from('auto_replies')
       .select('*')
@@ -195,25 +196,56 @@ class WhatsAppService {
     if (replies) {
       for (const reply of replies) {
         let match = false
-
         if (reply.trigger_type === 'all') match = true
         else if (reply.trigger_type === 'keyword' && text.trim() === reply.trigger_value) match = true
         else if (reply.trigger_type === 'contains' && text.includes(reply.trigger_value)) match = true
         else if (reply.trigger_type === 'starts_with' && text.startsWith(reply.trigger_value)) match = true
-        else if (reply.trigger_type === 'first_message') match = true // TODO: check if first
+        else if (reply.trigger_type === 'first_message') match = true
 
         if (match) {
           const content = reply.response_content
           if (reply.response_type === 'text') {
             await sock.sendMessage(from, { text: content.text })
           }
-          // Increment uses_count
-          await supabase
-            .from('auto_replies')
-            .update({ uses_count: reply.uses_count + 1 })
-            .eq('id', reply.id)
+          await supabase.from('auto_replies').update({ uses_count: reply.uses_count + 1 }).eq('id', reply.id)
+          autoReplied = true
           break
         }
+      }
+    }
+
+    // AI Fallback - if no auto_reply matched and device has AI enabled
+    if (!autoReplied && text) {
+      try {
+        const { data: deviceAI } = await supabase.from('devices').select('ai_enabled, ai_system_prompt').eq('id', deviceId).single()
+        if (deviceAI?.ai_enabled) {
+          const { data: history } = await supabase.from('messages').select('direction, content').eq('device_id', deviceId).eq('from_number', from?.split('@')[0]).order('created_at', { ascending: false }).limit(10)
+          const chatHistory = (history || []).reverse().map(m => ({
+            role: m.direction === 'incoming' ? 'user' : 'model',
+            parts: [{ text: typeof m.content === 'object' ? m.content.text || '' : m.content || '' }],
+          }))
+
+          const { data: settings } = await supabase.from('system_settings').select('settings').eq('id', 'global').single()
+          const apiKey = settings?.settings?.gemini_api_key || process.env.GEMINI_API_KEY
+          if (apiKey) {
+            const { GoogleGenerativeAI } = require('@google/generative-ai')
+            const genAI = new GoogleGenerativeAI(apiKey)
+            const model = genAI.getGenerativeModel({
+              model: 'gemini-2.0-flash',
+              systemInstruction: deviceAI.ai_system_prompt || settings?.settings?.default_system_prompt || 'أنت مساعد ذكي ودود.',
+              generationConfig: { maxOutputTokens: 200, temperature: 0.7 },
+            })
+            const chat = model.startChat({ history: chatHistory })
+            const result = await chat.sendMessage(text)
+            const aiReply = result.response.text()
+            if (aiReply) {
+              await sock.sendMessage(from, { text: aiReply })
+              await supabase.from('messages').insert({ device_id: deviceId, user_id: userId, direction: 'outgoing', to_number: from?.split('@')[0], type: 'text', content: { text: aiReply }, status: 'sent', metadata: { source: 'ai' } })
+            }
+          }
+        }
+      } catch (aiErr) {
+        console.error('AI reply error:', aiErr.message)
       }
     }
 

@@ -141,6 +141,10 @@ export default function ReportsPage() {
             <option value="failed">فشل</option>
             <option value="pending">معلق</option>
           </select>
+          <select className="input-cosmic" value={filter.device_id} onChange={e => setFilter({ ...filter, device_id: e.target.value })} style={{ width: '150px', padding: '6px 10px', fontSize: '12px' }}>
+            <option value="">كل الأجهزة</option>
+            {devices.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
         </div>
         <table className="table-cosmic">
           <thead><tr><th>الرقم</th><th>الاتجاه</th><th>النوع</th><th>المحتوى</th><th>الحالة</th><th>التاريخ</th></tr></thead>

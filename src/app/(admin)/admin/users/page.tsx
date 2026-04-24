@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
       {/* User Detail Modal */}
       {selectedUser && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' }}>
-          <div className="glass" style={{ borderRadius: '20px', padding: '32px', maxWidth: '480px', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="glass" style={{ borderRadius: '20px', padding: '32px', maxWidth: '520px', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedUser.name || selectedUser.email}</h3>
               <button onClick={() => setSelectedUser(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
@@ -129,6 +129,12 @@ export default function AdminUsersPage() {
                 <div style={{ marginTop: '6px' }}>📅 انضم: {new Date(selectedUser.created_at).toLocaleDateString('ar-SA')}</div>
               </div>
 
+              {/* Impersonate */}
+              <button onClick={() => { window.open(`/home?impersonate=${selectedUser.id}`, '_blank') }} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid rgba(124,58,237,0.3)', cursor: 'pointer', background: 'rgba(124,58,237,0.1)', color: '#A78BFA', fontWeight: 600, fontSize: '14px', fontFamily: 'Tajawal, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Eye size={16} /> الدخول كمستخدم (Impersonate)
+              </button>
+
+              {/* Extend subscription */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>تمديد الاشتراك (أيام)</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -137,6 +143,23 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
+              {/* Add messages */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>إضافة رسائل إضافية</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="number" className="input-cosmic" value={addMessages} onChange={e => setAddMessages(+e.target.value)} min={100} step={100} style={{ flex: 1 }} />
+                  <button onClick={async () => {
+                    const supabase = createClient()
+                    const { data: sub } = await supabase.from('subscriptions').select('messages_limit').eq('user_id', selectedUser.id).in('status', ['active', 'trial']).order('created_at', { ascending: false }).limit(1).single()
+                    if (!sub) return alert('لا يوجد اشتراك نشط')
+                    await supabase.from('subscriptions').update({ messages_limit: (sub.messages_limit || 0) + addMessages }).eq('user_id', selectedUser.id)
+                    alert(`تم إضافة ${addMessages} رسالة`)
+                    fetchUsers()
+                  }} className="btn-primary" style={{ whiteSpace: 'nowrap' }}>إضافة</button>
+                </div>
+              </div>
+
+              {/* Ban/Unban */}
               <button onClick={() => handleBan(selectedUser.id, selectedUser.is_banned)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: selectedUser.is_banned ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: selectedUser.is_banned ? '#10B981' : '#EF4444', fontWeight: 600, fontSize: '14px', fontFamily: 'Tajawal, sans-serif' }}>
                 {selectedUser.is_banned ? '✅ إلغاء الحظر' : '🚫 حظر المستخدم'}
               </button>

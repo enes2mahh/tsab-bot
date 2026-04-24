@@ -119,10 +119,25 @@ function CampaignBuilder({ onClose, onCreated }: { onClose: () => void; onCreate
         {step === 2 && (
           <div>
             <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>الخطوة 2: المستلمون</p>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <button onClick={() => {}} style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--accent-violet)', background: 'rgba(124,58,237,0.15)', color: '#A78BFA', cursor: 'pointer', fontSize: '13px' }}>📝 أرقام يدوية</button>
+              <label style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Upload size={13} /> رفع CSV
+                <input type="file" accept=".csv,.txt" hidden onChange={e => {
+                  const file = e.target.files?.[0]; if (!file) return
+                  const reader = new FileReader()
+                  reader.onload = ev => {
+                    const lines = (ev.target?.result as string).split('\n').map(l => l.replace(/[",]/g, '').trim()).filter(l => l && /^\d{10,15}$/.test(l))
+                    setForm({ ...form, recipients_text: (form.recipients_text ? form.recipients_text + '\n' : '') + lines.join('\n') })
+                  }
+                  reader.readAsText(file)
+                }} />
+              </label>
+            </div>
             <textarea
               className="input-cosmic"
               rows={10}
-              placeholder="أدخل الأرقام، رقم في كل سطر:&#10;966501234567&#10;966507654321&#10;..."
+              placeholder={"أدخل الأرقام، رقم في كل سطر:\n966501234567\n966507654321\n..."}
               value={form.recipients_text}
               onChange={e => setForm({ ...form, recipients_text: e.target.value })}
               style={{ resize: 'vertical' }}

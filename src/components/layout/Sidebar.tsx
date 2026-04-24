@@ -7,7 +7,7 @@ import {
   Home, Smartphone, Megaphone, MessageSquare, Bot,
   GitBranch, FileText, BookOpen, FolderOpen, BarChart3,
   Ticket, Crown, Settings, TrendingUp, Plug, LogOut,
-  ChevronLeft, Zap, Filter
+  ChevronLeft, Zap, Filter, Flame
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -22,6 +22,7 @@ const navItems = [
   { href: '/contacts', icon: BookOpen, label: 'دليل الهاتف', color: '#A78BFA' },
   { href: '/files', icon: FolderOpen, label: 'مدير الملفات', color: '#F59E0B' },
   { href: '/reports', icon: BarChart3, label: 'التقارير', color: '#10B981' },
+  { href: '/warmer', icon: Flame, label: 'WA Warmer', color: '#F97316' },
   { href: '/tickets', icon: Ticket, label: 'التذاكر', color: '#60A5FA' },
   { href: '/plans', icon: Crown, label: 'الخطط', color: '#F59E0B' },
 ]
