@@ -10,13 +10,23 @@ export async function POST(req: NextRequest) {
 
   const { deviceId } = await req.json()
 
-  // Verify device belongs to user
-  const { data: device } = await supabase
-    .from('devices')
-    .select('id, session_id')
-    .eq('id', deviceId)
-    .eq('user_id', user.id)
+  // Verify device belongs to user (or admin)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
     .single()
+
+  let deviceQuery = supabase
+    .from('devices')
+    .select('id, session_id, user_id')
+    .eq('id', deviceId)
+
+  if (profile?.role !== 'admin') {
+    deviceQuery = deviceQuery.eq('user_id', user.id)
+  }
+
+  const { data: device } = await deviceQuery.single()
 
   if (!device) return NextResponse.json({ error: 'الجهاز غير موجود' }, { status: 404 })
 
@@ -32,11 +42,23 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.WA_SERVER_SECRET}`,
       },
-      body: JSON.stringify({ deviceId: device.id }),
+      body: JSON.stringify({ deviceId: device.id, userId: device.user_id }),
+      // Wait long enough for QR to be generated
+      signal: AbortSignal.timeout(20000),
     })
+
     const data = await res.json()
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: data.error || 'تعذر توليد رمز QR' },
+        { status: res.status },
+      )
+    }
+
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'تعذر الاتصال بسيرفر واتساب' }, { status: 500 })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'تعذر الاتصال بسيرفر واتساب'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

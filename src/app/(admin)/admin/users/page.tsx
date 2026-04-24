@@ -130,8 +130,28 @@ export default function AdminUsersPage() {
               </div>
 
               {/* Impersonate */}
-              <button onClick={() => { window.open(`/home?impersonate=${selectedUser.id}`, '_blank') }} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid rgba(124,58,237,0.3)', cursor: 'pointer', background: 'rgba(124,58,237,0.1)', color: '#A78BFA', fontWeight: 600, fontSize: '14px', fontFamily: 'Tajawal, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <Eye size={16} /> الدخول كمستخدم (Impersonate)
+              <button
+                onClick={async () => {
+                  try {
+                    const r = await fetch('/api/admin/impersonate', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ userId: selectedUser.id }),
+                    })
+                    const data = await r.json()
+                    if (data.url) {
+                      // Redirect to magic link (will sign us in as that user)
+                      window.location.href = data.url
+                    } else {
+                      alert(data.error || 'فشل في الدخول كمستخدم')
+                    }
+                  } catch {
+                    alert('تعذر الاتصال بالسيرفر')
+                  }
+                }}
+                style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid rgba(124,58,237,0.3)', cursor: 'pointer', background: 'rgba(124,58,237,0.1)', color: '#A78BFA', fontWeight: 600, fontSize: '14px', fontFamily: 'Tajawal, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <Eye size={16} /> الدخول كهذا المستخدم
               </button>
 
               {/* Extend subscription */}

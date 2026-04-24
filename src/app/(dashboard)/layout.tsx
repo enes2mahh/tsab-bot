@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { ImpersonateBanner } from '@/components/layout/ImpersonateBanner'
 import { createClient } from '@/lib/supabase/client'
 
 const pageTitles: Record<string, string> = {
@@ -50,6 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      <ImpersonateBanner />
       <Sidebar onCollapse={setCollapsed} />
       <div
         className="main-content"

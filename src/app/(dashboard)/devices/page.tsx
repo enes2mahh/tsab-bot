@@ -22,31 +22,39 @@ function QRModal({ deviceId, onClose, onConnected }: { deviceId: string; onClose
   const [timer, setTimer] = useState(60)
   const [connected, setConnected] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchQR = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/devices/qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId }),
+      })
+      const data = await res.json()
+      if (data.alreadyConnected) {
+        setConnected(true)
+        setTimeout(() => { onConnected(); onClose() }, 1500)
+        return
+      }
+      if (data.qr) {
+        setQr(data.qr)
+        setTimer(60)
+      } else {
+        setError(data.error || 'فشل في توليد QR. تأكد من إعداد سيرفر واتساب.')
+      }
+    } catch {
+      setError('تعذر الاتصال بسيرفر واتساب')
+    }
+    setLoading(false)
+  }
 
   useEffect(() => {
-    // Request QR from WA server
-    const fetchQR = async () => {
-      setLoading(true)
-      try {
-        const res = await fetch('/api/devices/qr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ deviceId }),
-        })
-        const data = await res.json()
-        if (data.qr) {
-          setQr(data.qr)
-          setTimer(60)
-        }
-      } catch (err) {
-        console.error('QR fetch error', err)
-      }
-      setLoading(false)
-    }
-
     fetchQR()
 
-    // Realtime: listen for device connected
+    // Realtime: listen for device connected via Supabase
     const supabase = createClient()
     const channel = supabase
       .channel(`device-${deviceId}`)
@@ -67,6 +75,7 @@ function QRModal({ deviceId, onClose, onConnected }: { deviceId: string; onClose
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
 
   // Timer countdown
@@ -192,7 +201,7 @@ function QRModal({ deviceId, onClose, onConnected }: { deviceId: string; onClose
 
             {timer <= 0 && (
               <button
-                onClick={() => { setTimer(60); setLoading(true) }}
+                onClick={fetchQR}
                 className="btn-secondary"
                 style={{ width: '100%', justifyContent: 'center' }}
               >
@@ -202,7 +211,14 @@ function QRModal({ deviceId, onClose, onConnected }: { deviceId: string; onClose
             )}
           </>
         ) : (
-          <div style={{ padding: '20px', color: '#EF4444' }}>فشل في توليد QR. تأكد من إعداد سيرفر واتساب.</div>
+          <div style={{ padding: '20px' }}>
+            <div style={{ color: '#EF4444', marginBottom: '16px', fontSize: '14px' }}>
+              {error || 'فشل في توليد QR. تأكد من إعداد سيرفر واتساب.'}
+            </div>
+            <button onClick={fetchQR} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+              <RefreshCw size={16} /> إعادة المحاولة
+            </button>
+          </div>
         )}
       </div>
       <style jsx global>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
@@ -323,7 +339,7 @@ function AISettingsModal({ device, onClose, onSaved }: { device: Device; onClose
 
   const handleSave = async () => {
     setSaving(true)
-    await createClient().from('devices').update({ ai_enabled: aiEnabled, ai_system_prompt: prompt || null }).eq('id', device.id)
+    await createClient().from('devices').update({ ai_enabled: aiEnabled, ai_prompt: prompt || null }).eq('id', device.id)
     setSaving(false)
     onSaved()
     onClose()
