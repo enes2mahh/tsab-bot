@@ -346,6 +346,8 @@ class WhatsAppService {
 
   // ========== HANDLE AI REPLY ==========
   async handleAIReply(deviceId, userId, jid, phoneOnly, text, sock) {
+    console.log(`[AI] Incoming from ${phoneOnly}: "${text.substring(0, 60)}"`)
+
     try {
       const { data: device } = await supabase
         .from('devices')
@@ -353,7 +355,10 @@ class WhatsAppService {
         .eq('id', deviceId)
         .single()
 
-      if (!device?.ai_enabled) return
+      if (!device?.ai_enabled) {
+        console.log(`[AI] Device ${deviceId} has AI disabled`)
+        return
+      }
 
       // Get API key (user's gemini key from system_settings, or env fallback)
       const { data: settings } = await supabase
@@ -364,9 +369,10 @@ class WhatsAppService {
 
       const apiKey = settings?.settings?.gemini_api_key || GEMINI_API_KEY
       if (!apiKey) {
-        console.warn('No Gemini API key configured')
+        console.warn('[AI] No Gemini API key configured')
         return
       }
+      console.log(`[AI] Using API key: ${apiKey.substring(0, 10)}...`)
 
       // === Show typing indicator immediately ===
       try { await sock.sendPresenceUpdate('composing', jid) } catch {}
@@ -380,32 +386,68 @@ class WhatsAppService {
         .order('created_at', { ascending: false })
         .limit(20)
 
-      const chatHistory = (history || [])
+      // Build chat history. Gemini requires:
+      // 1) History starts with 'user'
+      // 2) Alternating user/model (no two same roles in a row)
+      let chatHistory = (history || [])
         .reverse()
-        .slice(0, -1)  // Exclude the current message (we'll send it via sendMessage)
+        .slice(0, -1) // Exclude the current user message (we'll send it via sendMessage)
         .map((m) => ({
           role: m.direction === 'incoming' ? 'user' : 'model',
-          parts: [{ text: typeof m.content === 'object' ? (m.content?.text || '') : (m.content || '') }],
+          parts: [{ text: typeof m.content === 'object' ? (m.content?.text || '') : String(m.content || '') }],
         }))
-        .filter((m) => m.parts[0].text)
+        .filter((m) => m.parts[0].text && m.parts[0].text.trim().length > 0)
+
+      // Drop leading 'model' messages (history must start with user)
+      while (chatHistory.length > 0 && chatHistory[0].role !== 'user') {
+        chatHistory.shift()
+      }
+
+      // Collapse consecutive same-role entries
+      chatHistory = chatHistory.reduce((acc, m) => {
+        if (acc.length === 0 || acc[acc.length - 1].role !== m.role) acc.push(m)
+        return acc
+      }, [])
+
+      console.log(`[AI] History length after cleanup: ${chatHistory.length}`)
 
       const systemPrompt =
         device.ai_prompt ||
         settings?.settings?.default_system_prompt ||
         'أنت مساعد ذكي ومحترف لخدمة العملاء. أجب باللغة التي يكتب بها العميل، بشكل ودود ومختصر.'
 
+      // Try primary model first, fall back to gemini-1.5-flash if it fails
+      const primaryModel = device.ai_model || 'gemini-1.5-flash'
+      const fallbackModels = [primaryModel, 'gemini-1.5-flash', 'gemini-1.5-flash-latest']
+        .filter((v, i, arr) => arr.indexOf(v) === i)
+
       const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({
-        model: device.ai_model || 'gemini-2.0-flash',
-        systemInstruction: systemPrompt,
-        generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
-      })
+      let reply = null
+      let usedModel = null
+      let lastErr = null
 
-      const chat = model.startChat({ history: chatHistory })
-      const result = await chat.sendMessage(text)
-      const reply = result.response.text()
+      for (const modelName of fallbackModels) {
+        try {
+          console.log(`[AI] Trying model: ${modelName}`)
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            systemInstruction: systemPrompt,
+            generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
+          })
+          const chat = model.startChat({ history: chatHistory })
+          const result = await chat.sendMessage(text)
+          reply = result.response.text()
+          usedModel = modelName
+          console.log(`[AI] ✅ Got reply from ${modelName}: "${(reply || '').substring(0, 60)}"`)
+          break
+        } catch (err) {
+          lastErr = err
+          console.warn(`[AI] Model ${modelName} failed: ${err.message}`)
+        }
+      }
 
-      if (!reply) {
+      if (!reply || !reply.trim()) {
+        console.error(`[AI] All models failed. Last error: ${lastErr?.message || 'empty response'}`)
         try { await sock.sendPresenceUpdate('paused', jid) } catch {}
         return
       }
@@ -417,6 +459,7 @@ class WhatsAppService {
       await new Promise((r) => setTimeout(r, 600 + Math.random() * 800))
 
       await sock.sendMessage(jid, { text: reply })
+      console.log(`[AI] ✅ Reply sent via ${usedModel}`)
 
       // Save outgoing message
       await supabase.from('messages').insert({
@@ -433,10 +476,10 @@ class WhatsAppService {
       await supabase.from('ai_usage_logs').insert({
         user_id: userId,
         device_id: deviceId,
-        model: device.ai_model || 'gemini-2.0-flash',
+        model: usedModel,
       })
     } catch (err) {
-      console.error(`[${deviceId}] AI reply error:`, err.message)
+      console.error(`[AI] [${deviceId}] Reply error:`, err.message, err.stack)
       try { await sock.sendPresenceUpdate('paused', jid) } catch {}
     }
   }

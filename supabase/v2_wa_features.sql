@@ -7,7 +7,11 @@
 -- 1) Make sure devices table has the right AI columns
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS ai_prompt TEXT
   DEFAULT 'أنت مساعد ذكي ومحترف لخدمة العملاء. أجب باللغة التي يكتب بها العميل، بشكل ودود ومختصر.';
-ALTER TABLE devices ADD COLUMN IF NOT EXISTS ai_model TEXT DEFAULT 'gemini-2.0-flash';
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS ai_model TEXT DEFAULT 'gemini-1.5-flash';
+
+-- Migrate existing devices that have the unavailable 'gemini-2.0-flash' to the reliable flash model
+UPDATE devices SET ai_model = 'gemini-1.5-flash'
+WHERE ai_model = 'gemini-2.0-flash' OR ai_model IS NULL;
 ALTER TABLE devices ADD COLUMN IF NOT EXISTS ai_enabled BOOLEAN DEFAULT false;
 
 -- 2) Drop the old stale ai_system_prompt if present (legacy)
