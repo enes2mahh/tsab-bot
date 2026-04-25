@@ -448,9 +448,23 @@ class WhatsAppService {
       }
     }
 
-    // AI fallback
+    // === SMART REPLIES (no AI tokens used) ===
+    // 1) Bot FAQs (manually added by merchant OR auto-learned from repeated questions)
     if (!handled && text) {
-      await this.handleAIReply(deviceId, userId, from, phoneOnly, text, sock)
+      handled = await this.tryFAQReply(deviceId, userId, from, phoneOnly, text, sock)
+    }
+    // 2) Greeting patterns (السلام عليكم، مرحبا، hi, hello...)
+    if (!handled && text) {
+      handled = await this.tryGreetingReply(deviceId, userId, from, phoneOnly, text, sock)
+    }
+
+    // === AI fallback (uses Gemini tokens) ===
+    if (!handled && text) {
+      const aiAnswer = await this.handleAIReply(deviceId, userId, from, phoneOnly, text, sock)
+      // Track for auto-learning if AI generated a reply
+      if (aiAnswer) {
+        this.trackQuestionForLearning(deviceId, text, aiAnswer).catch(() => {})
+      }
     }
 
     // Webhook
@@ -458,6 +472,177 @@ class WhatsAppService {
     const { data: device } = await supabase.from('devices').select('webhook_url').eq('id', deviceId).single()
     if (device?.webhook_url) {
       axios.post(device.webhook_url, { deviceId, from: phoneOnly, text, timestamp: Date.now() }, { timeout: 5000 }).catch(() => {})
+    }
+  }
+
+  // ========== SMART REPLY HELPERS ==========
+
+  // Normalize Arabic + English text for FAQ matching
+  _normalize(text) {
+    return (text || '')
+      .trim()
+      .toLowerCase()
+      // Strip diacritics (tashkeel)
+      .replace(/[ً-ٰٟ]/g, '')
+      // Normalize alef variants
+      .replace(/[آأإ]/g, 'ا')
+      // Normalize yeh
+      .replace(/ى/g, 'ي')
+      // Normalize teh marbuta
+      .replace(/ة/g, 'ه')
+      // Collapse whitespace
+      .replace(/\s+/g, ' ')
+      // Strip trailing punctuation
+      .replace(/[?!.,،؟،]+$/, '')
+  }
+
+  // Try matching merchant's manual or auto-learned FAQs
+  async tryFAQReply(deviceId, userId, jid, phoneOnly, text, sock) {
+    const normalized = this._normalize(text)
+    if (!normalized) return false
+
+    const { data: faqs } = await supabase
+      .from('bot_faqs')
+      .select('*')
+      .eq('device_id', deviceId)
+      .eq('is_active', true)
+
+    if (!faqs?.length) return false
+
+    // Exact match first
+    let match = faqs.find((f) => f.question_normalized === normalized)
+    // Then prefix/contains match
+    if (!match) {
+      match = faqs.find((f) =>
+        normalized.startsWith(f.question_normalized) ||
+        normalized.includes(f.question_normalized) ||
+        f.question_normalized.includes(normalized)
+      )
+    }
+
+    if (!match) return false
+
+    console.log(`[FAQ] ✅ Matched "${match.question_normalized}" → "${match.answer.substring(0, 50)}..."`)
+
+    // Send with typing indicator
+    try { await sock.sendPresenceUpdate('composing', jid) } catch {}
+    await new Promise((r) => setTimeout(r, 600 + Math.random() * 800))
+    try { await sock.sendPresenceUpdate('paused', jid) } catch {}
+
+    await sock.sendMessage(jid, { text: match.answer })
+
+    // Save outgoing
+    await supabase.from('messages').insert({
+      device_id: deviceId, user_id: userId, direction: 'outgoing',
+      to_number: phoneOnly, type: 'text', content: { text: match.answer }, status: 'sent',
+      metadata: { source: 'faq', faq_id: match.id, faq_source: match.source },
+    })
+
+    // Increment hits
+    await supabase.from('bot_faqs').update({ hits_count: (match.hits_count || 0) + 1 }).eq('id', match.id)
+
+    return true
+  }
+
+  // Try matching common greetings (no AI needed)
+  async tryGreetingReply(deviceId, userId, jid, phoneOnly, text, sock) {
+    const normalized = this._normalize(text)
+    if (!normalized || normalized.length > 60) return false  // Greetings are short
+
+    const { data: greetings } = await supabase
+      .from('global_greetings')
+      .select('*')
+      .eq('is_active', true)
+
+    if (!greetings?.length) return false
+
+    const match = greetings.find((g) => {
+      const gNorm = this._normalize(g.pattern)
+      return normalized === gNorm || normalized.startsWith(gNorm) || normalized.endsWith(gNorm)
+    })
+
+    if (!match) return false
+
+    console.log(`[Greeting] 👋 Matched "${match.pattern}"`)
+
+    // Check if business has custom greeting
+    const { data: device } = await supabase.from('devices').select('user_id').eq('id', deviceId).single()
+    let response = match.default_response
+    if (device?.user_id) {
+      const { data: profile } = await supabase
+        .from('business_profile')
+        .select('greeting_message, business_name')
+        .eq('user_id', device.user_id)
+        .single()
+      if (profile?.greeting_message) response = profile.greeting_message
+      else if (profile?.business_name) {
+        response = response.replace('كيف أقدر أساعدك', `مرحباً بك في ${profile.business_name}، كيف أقدر أساعدك`)
+      }
+    }
+
+    try { await sock.sendPresenceUpdate('composing', jid) } catch {}
+    await new Promise((r) => setTimeout(r, 500 + Math.random() * 700))
+    try { await sock.sendPresenceUpdate('paused', jid) } catch {}
+
+    await sock.sendMessage(jid, { text: response })
+
+    await supabase.from('messages').insert({
+      device_id: deviceId, user_id: userId, direction: 'outgoing',
+      to_number: phoneOnly, type: 'text', content: { text: response }, status: 'sent',
+      metadata: { source: 'greeting', pattern: match.pattern },
+    })
+
+    return true
+  }
+
+  // Track repeated questions; auto-promote to FAQ when seen 3+ times
+  async trackQuestionForLearning(deviceId, question, aiAnswer) {
+    const normalized = this._normalize(question)
+    if (!normalized || normalized.length < 5) return  // Skip too-short
+
+    const { data: existing } = await supabase
+      .from('faq_learning_queue')
+      .select('id, count, promoted')
+      .eq('device_id', deviceId)
+      .eq('question_normalized', normalized)
+      .single()
+
+    if (existing) {
+      const newCount = (existing.count || 1) + 1
+      await supabase.from('faq_learning_queue').update({
+        count: newCount,
+        last_question: question,
+        last_ai_answer: aiAnswer,
+        last_seen_at: new Date().toISOString(),
+      }).eq('id', existing.id)
+
+      // Promote to bot_faqs at 3+ repeats
+      if (newCount >= 3 && !existing.promoted) {
+        const { data: device } = await supabase.from('devices').select('user_id').eq('id', deviceId).single()
+        if (device) {
+          await supabase.from('bot_faqs').insert({
+            device_id: deviceId,
+            user_id: device.user_id,
+            question_normalized: normalized,
+            question_original: question,
+            answer: aiAnswer,
+            source: 'auto_learned',
+            hits_count: 0,
+            is_active: true,
+          }).then(() =>
+            supabase.from('faq_learning_queue').update({ promoted: true }).eq('id', existing.id)
+          )
+          console.log(`[Learning] 🧠 Auto-promoted to FAQ: "${normalized.substring(0, 50)}..."`)
+        }
+      }
+    } else {
+      await supabase.from('faq_learning_queue').insert({
+        device_id: deviceId,
+        question_normalized: normalized,
+        last_question: question,
+        last_ai_answer: aiAnswer,
+        count: 1,
+      })
     }
   }
 
@@ -475,7 +660,7 @@ class WhatsAppService {
       }
       if (!device?.ai_enabled) {
         console.log(`[AI] ❌ AI disabled for ${deviceId}`)
-        return
+        return null
       }
       console.log(`[AI] ✅ AI enabled. model=${device.ai_model} prompt="${(device.ai_prompt || '').substring(0, 50)}..."`)
 
@@ -521,10 +706,48 @@ class WhatsAppService {
 
       console.log(`[AI] history: ${chatHistory.length} msgs`)
 
-      const systemPrompt =
+      // Build context-aware system prompt from business_profile
+      const { data: bizProfile } = await supabase
+        .from('business_profile')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+      let systemPrompt =
         device.ai_prompt ||
         settings?.settings?.default_system_prompt ||
         'أنت مساعد ذكي ومحترف لخدمة العملاء. أجب باللغة التي يكتب بها العميل، بشكل ودود ومختصر.'
+
+      // Inject business context if available
+      if (bizProfile) {
+        const contextParts = []
+        if (bizProfile.business_name) contextParts.push(`اسم المتجر: ${bizProfile.business_name}`)
+        if (bizProfile.business_type) contextParts.push(`نوع النشاط: ${bizProfile.business_type}`)
+        if (bizProfile.description) contextParts.push(`عن المتجر: ${bizProfile.description}`)
+        if (bizProfile.bot_personality) contextParts.push(`أسلوبك: ${bizProfile.bot_personality}`)
+
+        const services = Array.isArray(bizProfile.services) ? bizProfile.services : []
+        if (services.length > 0) {
+          contextParts.push('الخدمات/المنتجات المتاحة:')
+          services.forEach((s) => {
+            const parts = [`- ${s.name}`]
+            if (s.description) parts.push(`(${s.description})`)
+            if (s.price) parts.push(`السعر: ${s.price}`)
+            if (s.link) parts.push(`الرابط: ${s.link}`)
+            contextParts.push(parts.join(' '))
+          })
+        }
+
+        if (bizProfile.payment_info) contextParts.push(`طرق الدفع: ${bizProfile.payment_info}`)
+        if (bizProfile.working_hours) contextParts.push(`ساعات العمل: ${bizProfile.working_hours}`)
+        if (bizProfile.handoff_message) contextParts.push(`عند موافقة العميل على خدمة معينة، قل بالضبط: "${bizProfile.handoff_message}"`)
+        if (bizProfile.off_topic_response) contextParts.push(`عند سؤال خارج نطاق المتجر، قل: "${bizProfile.off_topic_response}"`)
+        if (bizProfile.custom_rules) contextParts.push(`قواعد إضافية: ${bizProfile.custom_rules}`)
+
+        contextParts.push('قواعد عامة: 1) لا تخترع منتجات أو أسعار غير موجودة 2) عند الموافقة على شراء، اذكر رابط المنتج وأخبر العميل أن خدمة العملاء ستتواصل معه قريباً 3) كن مختصراً ومباشراً 4) استخدم لغة العميل')
+
+        systemPrompt = contextParts.join('\n')
+      }
 
       // === On first AI call ever, list available models for diagnostics ===
       try {
@@ -592,7 +815,7 @@ class WhatsAppService {
       if (!reply || !reply.trim()) {
         console.error(`[AI] ❌ All models failed. Last error: ${lastErr?.message || 'empty'}`)
         try { await sock.sendPresenceUpdate('paused', jid) } catch {}
-        return
+        return null
       }
 
       try { await sock.sendPresenceUpdate('paused', jid) } catch {}
@@ -602,7 +825,7 @@ class WhatsAppService {
       const current = sessions.get(deviceId)
       if (!current?.sock?.user) {
         console.error(`[AI] ❌ Socket not active when ready to send`)
-        return
+        return null
       }
 
       try {
@@ -610,19 +833,22 @@ class WhatsAppService {
         console.log(`[AI] ✅ Reply sent via ${usedModel}`)
       } catch (sendErr) {
         console.error(`[AI] ❌ Send failed: ${sendErr.message}`)
-        return
+        return null
       }
 
       await supabase.from('messages').insert({
         device_id: deviceId, user_id: userId, direction: 'outgoing',
         to_number: phoneOnly, type: 'text', content: { text: reply }, status: 'sent',
+        metadata: { source: 'ai', model: usedModel },
       })
       await supabase.from('ai_usage_logs').insert({ user_id: userId, device_id: deviceId, model: usedModel })
 
       console.log(`[AI] === END === ✅`)
+      return reply  // Return for auto-learning
     } catch (err) {
       console.error(`[AI] FATAL [${deviceId}]:`, err.message, err.stack)
       try { await sock.sendPresenceUpdate('paused', jid) } catch {}
+      return null
     }
   }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Eye, X, Smartphone, MessageSquare, Megaphone, DollarSign, Calendar, Mail, Phone, Hash, Crown, Shield, Ban, CheckCircle, RefreshCw } from 'lucide-react'
+import { Search, Eye, X, Smartphone, MessageSquare, Megaphone, DollarSign, Calendar, Mail, Phone, Hash, Crown, Shield, Ban, CheckCircle, RefreshCw, Key } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface DetailStats {
@@ -131,6 +131,22 @@ export default function AdminUsersPage() {
     await createClient().from('profiles').update({ role: newRole }).eq('id', userId)
     fetchUsers()
     setSelectedUser(null)
+  }
+
+  const resetPassword = async (userId: string, email: string) => {
+    const newPwd = prompt(`أدخل كلمة المرور الجديدة لـ ${email}\n(8 أحرف على الأقل)`)
+    if (!newPwd) return
+    if (newPwd.length < 8) return alert('الباسوورد يجب أن يكون 8 أحرف على الأقل')
+    try {
+      const r = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, newPassword: newPwd }),
+      })
+      const data = await r.json()
+      if (data.success) alert(`✅ تم تغيير كلمة المرور لـ ${email}\n\nأخبر المستخدم بالباسوورد الجديد:\n${newPwd}`)
+      else alert(data.error || '❌ فشل')
+    } catch { alert('❌ تعذر الاتصال') }
   }
 
   const impersonate = async (userId: string) => {
@@ -306,6 +322,14 @@ export default function AdminUsersPage() {
               <button onClick={() => impersonate(selectedUser.id)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid rgba(124,58,237,0.3)', cursor: 'pointer', background: 'rgba(124,58,237,0.1)', color: '#A78BFA', fontWeight: 600, fontSize: '14px', fontFamily: 'Tajawal, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 <Eye size={16} /> الدخول كهذا المستخدم
               </button>
+
+              {/* Reset Password */}
+              <button onClick={() => resetPassword(selectedUser.id, selectedUser.email)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.3)', cursor: 'pointer', background: 'rgba(245,158,11,0.1)', color: '#F59E0B', fontWeight: 600, fontSize: '14px', fontFamily: 'Tajawal, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Key size={16} /> إعادة تعيين كلمة المرور
+              </button>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '-4px', textAlign: 'center' }}>
+                💡 لا يمكن إظهار الباسوورد القديم (مشفّر bcrypt). نضع باسوورد جديد فقط.
+              </p>
 
               {/* Change Plan */}
               <div>

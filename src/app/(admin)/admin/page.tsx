@@ -103,6 +103,8 @@ export default function AdminPage() {
             {[
               { href: '/admin/analytics', label: '📈 التحليلات المتقدمة', desc: 'إحصاءات شاملة عن المنصة' },
               { href: '/admin/users', label: '👥 إدارة المستخدمين', desc: 'عرض وإدارة كل المستخدمين' },
+              { href: '/admin/all-contacts', label: '📞 جميع جهات الاتصال', desc: 'كل العملاء عبر المنصة' },
+              { href: '/admin/jobs', label: '💼 الوظائف', desc: 'إضافة/تعديل الوظائف الشاغرة' },
               { href: '/admin/plans', label: '📦 إدارة الخطط', desc: 'إضافة وتعديل خطط الاشتراك' },
               { href: '/admin/codes', label: '🔑 أكواد التفعيل', desc: 'إنشاء وإدارة الأكواد' },
               { href: '/admin/inquiries', label: '📥 صندوق الوارد', desc: 'تواصل، توظيف، شراكات' },

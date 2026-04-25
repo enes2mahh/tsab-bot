@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BookOpen, Plus, Search, Import, Download, Trash2, Tag, Phone, X } from 'lucide-react'
+import { BookOpen, Plus, Search, Import, Download, Trash2, Tag, Phone, X, MessageCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Contact {
@@ -79,6 +79,34 @@ export default function ContactsPage() {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'contacts.csv'; a.click()
   }
 
+  const importFromWhatsApp = async () => {
+    const supabase = createClient()
+    const { data: devices } = await supabase.from('devices').select('id, name, status').eq('status', 'connected')
+    if (!devices?.length) {
+      alert('⚠️ ما في جهاز متصل. اربط جهاز أولاً من صفحة الأجهزة.')
+      return
+    }
+    const deviceId = devices.length === 1 ? devices[0].id : prompt(`اختر جهازاً:\n${devices.map((d: any, i: number) => `${i + 1}. ${d.name}`).join('\n')}\n\nأدخل الرقم:`)?.trim()
+      .split('').map(Number)[0]
+    let target: any
+    if (devices.length === 1) target = devices[0]
+    else if (deviceId !== undefined && devices[deviceId - 1]) target = devices[deviceId - 1]
+    else return
+
+    const r = await fetch('/api/contacts/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId: target.id, source: 'chats' }),
+    })
+    const data = await r.json()
+    if (data.success) {
+      alert(`✅ تم استيراد ${data.imported} جهة اتصال جديدة من ${data.total || 0}`)
+      fetchContacts()
+    } else {
+      alert(data.error || 'فشل الاستيراد')
+    }
+  }
+
   const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -105,7 +133,10 @@ export default function ContactsPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div><h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>دليل الهاتف</h2><p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{contacts.length} جهة اتصال</p></div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button onClick={importFromWhatsApp} className="btn-secondary" style={{ background: 'rgba(37,211,102,0.1)', borderColor: 'rgba(37,211,102,0.3)', color: '#25D366' }}>
+            <MessageCircle size={15} /> استيراد من واتساب
+          </button>
           <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Import size={15} /> استيراد CSV
             <input type="file" hidden accept=".csv" onChange={handleImportCSV} />

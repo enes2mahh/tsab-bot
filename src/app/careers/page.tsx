@@ -1,9 +1,24 @@
 'use client'
 
-import { useState } from 'react'
-import { Briefcase, MapPin, Clock, Send, CheckCircle, AlertCircle, Star } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Briefcase, MapPin, Clock, Send, CheckCircle, AlertCircle, Inbox } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
 import { useLang } from '@/lib/lang'
+import { createClient } from '@/lib/supabase/client'
+
+interface Job {
+  id: string
+  slug: string
+  title_ar: string
+  title_en: string
+  description_ar: string | null
+  description_en: string | null
+  location_ar: string
+  location_en: string
+  type_ar: string
+  type_en: string
+  is_active: boolean
+}
 
 const T = {
   ar: {
@@ -20,18 +35,15 @@ const T = {
     apply: 'تقدّم الآن',
     applyTitle: 'استمارة التقديم',
     name: 'الاسم الكامل', email: 'البريد الإلكتروني', phone: 'رقم الهاتف',
-    position: 'الوظيفة المطلوبة', linkedin: 'رابط LinkedIn (اختياري)', portfolio: 'رابط Portfolio/CV',
+    linkedin: 'رابط LinkedIn (اختياري)', portfolio: 'رابط Portfolio/CV',
     cover: 'لماذا تريد الانضمام لـ Tsab Bot؟',
     submit: 'إرسال الطلب', submitting: 'جاري الإرسال...',
     success: '✅ تم استلام طلبك! سنراجعه ونتواصل معك خلال 7 أيام.',
     required: 'الرجاء تعبئة الحقول المطلوبة',
-    jobs: [
-      { id: 'fullstack', title: 'مطوّر Full-Stack', loc: 'عن بُعد', type: 'دوام كامل', desc: 'Next.js + Supabase + TypeScript' },
-      { id: 'wa-eng', title: 'مهندس WhatsApp Integration', loc: 'عن بُعد', type: 'دوام كامل', desc: 'Node.js + Baileys + Real-time' },
-      { id: 'ai', title: 'مهندس AI/ML', loc: 'عن بُعد', type: 'دوام كامل', desc: 'Gemini + LLMs + Prompt Engineering' },
-      { id: 'support', title: 'موظّف دعم فني', loc: 'عن بُعد', type: 'دوام كامل/جزئي', desc: 'تواصل مع العملاء بالعربية والإنجليزية' },
-      { id: 'marketing', title: 'مسوّق رقمي', loc: 'عن بُعد', type: 'دوام كامل', desc: 'محتوى + إعلانات + تحليلات' },
-    ],
+    noJobsTitle: 'لا توجد وظائف شاغرة حالياً',
+    noJobsDesc: 'تابعنا للحصول على آخر التحديثات. تستطيع أيضاً إرسال سيرتك الذاتية وسنحتفظ بها.',
+    sendCV: 'إرسال سيرة ذاتية',
+    loading: 'جاري التحميل...',
   },
   en: {
     title: 'Join Our Team',
@@ -47,18 +59,15 @@ const T = {
     apply: 'Apply Now',
     applyTitle: 'Application Form',
     name: 'Full Name', email: 'Email', phone: 'Phone',
-    position: 'Position', linkedin: 'LinkedIn URL (optional)', portfolio: 'Portfolio/CV URL',
+    linkedin: 'LinkedIn URL (optional)', portfolio: 'Portfolio/CV URL',
     cover: 'Why do you want to join Tsab Bot?',
     submit: 'Submit Application', submitting: 'Submitting...',
     success: '✅ Application received! We will review and reply within 7 days.',
     required: 'Please fill required fields',
-    jobs: [
-      { id: 'fullstack', title: 'Full-Stack Developer', loc: 'Remote', type: 'Full-time', desc: 'Next.js + Supabase + TypeScript' },
-      { id: 'wa-eng', title: 'WhatsApp Integration Engineer', loc: 'Remote', type: 'Full-time', desc: 'Node.js + Baileys + Real-time' },
-      { id: 'ai', title: 'AI/ML Engineer', loc: 'Remote', type: 'Full-time', desc: 'Gemini + LLMs + Prompt Engineering' },
-      { id: 'support', title: 'Support Specialist', loc: 'Remote', type: 'Full/Part-time', desc: 'Customer communication in Arabic & English' },
-      { id: 'marketing', title: 'Digital Marketer', loc: 'Remote', type: 'Full-time', desc: 'Content + Ads + Analytics' },
-    ],
+    noJobsTitle: 'No open positions right now',
+    noJobsDesc: 'Follow us for updates. You can also send us your CV and we will keep it on file.',
+    sendCV: 'Send CV',
+    loading: 'Loading...',
   },
 }
 
@@ -66,15 +75,32 @@ export default function CareersPage() {
   const { lang } = useLang()
   const t = T[lang]
 
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loadingJobs, setLoadingJobs] = useState(true)
+
   const [showForm, setShowForm] = useState(false)
-  const [selectedJob, setSelectedJob] = useState<string>('')
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null)
+  const [generalApplication, setGeneralApplication] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', linkedin: '', portfolio: '', cover: '' })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  const openApply = (jobId: string) => {
-    setSelectedJob(jobId)
+  useEffect(() => {
+    createClient()
+      .from('jobs')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => {
+        setJobs(data || [])
+        setLoadingJobs(false)
+      })
+  }, [])
+
+  const openApply = (job: Job | null) => {
+    setSelectedJob(job)
+    setGeneralApplication(!job)
     setShowForm(true)
     setSuccess(false)
     setError('')
@@ -95,9 +121,16 @@ export default function CareersPage() {
           name: form.name,
           email: form.email,
           phone: form.phone,
-          subject: t.jobs.find(j => j.id === selectedJob)?.title || 'Career Application',
+          subject: generalApplication
+            ? (lang === 'ar' ? 'طلب توظيف عام' : 'General Application')
+            : (lang === 'ar' ? selectedJob?.title_ar : selectedJob?.title_en) || 'Career Application',
           message: form.cover,
-          metadata: { position: selectedJob, linkedin: form.linkedin, portfolio: form.portfolio },
+          metadata: {
+            position: generalApplication ? 'general' : selectedJob?.slug,
+            position_title: generalApplication ? null : (selectedJob?.title_en || selectedJob?.title_ar),
+            linkedin: form.linkedin,
+            portfolio: form.portfolio,
+          },
         }),
       })
       const data = await r.json()
@@ -132,26 +165,42 @@ export default function CareersPage() {
         {/* Openings */}
         <div style={{ marginBottom: '40px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '24px' }}>{t.openings}</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {t.jobs.map(job => (
-              <div key={job.id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ flex: 1, minWidth: '240px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <Briefcase size={18} color="var(--accent-violet-light)" />
-                    <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>{job.title}</h3>
+
+          {loadingJobs ? (
+            <div className="skeleton" style={{ height: '200px', borderRadius: '12px' }} />
+          ) : jobs.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <Inbox size={56} color="var(--text-muted)" style={{ marginBottom: '16px' }} />
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>{t.noJobsTitle}</h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: '480px', margin: '0 auto 24px' }}>{t.noJobsDesc}</p>
+              <button onClick={() => openApply(null)} className="btn-primary">
+                <Send size={16} /> {t.sendCV}
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {jobs.map(job => (
+                <div key={job.id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ flex: 1, minWidth: '240px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                      <Briefcase size={18} color="var(--accent-violet-light)" />
+                      <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>{lang === 'ar' ? job.title_ar : job.title_en}</h3>
+                    </div>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                      {lang === 'ar' ? (job.description_ar || '') : (job.description_en || '')}
+                    </p>
+                    <div style={{ display: 'flex', gap: '14px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {lang === 'ar' ? job.location_ar : job.location_en}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {lang === 'ar' ? job.type_ar : job.type_en}</span>
+                    </div>
                   </div>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{job.desc}</p>
-                  <div style={{ display: 'flex', gap: '14px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {job.loc}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {job.type}</span>
-                  </div>
+                  <button onClick={() => openApply(job)} className="btn-primary">
+                    {t.apply}
+                  </button>
                 </div>
-                <button onClick={() => openApply(job.id)} className="btn-primary">
-                  {t.apply}
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Application Form */}
@@ -159,7 +208,9 @@ export default function CareersPage() {
           <div id="apply-form" className="glass" style={{ padding: '32px', borderRadius: '20px', marginTop: '40px' }}>
             <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{t.applyTitle}</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
-              {t.jobs.find(j => j.id === selectedJob)?.title}
+              {generalApplication
+                ? (lang === 'ar' ? 'طلب توظيف عام' : 'General Application')
+                : (lang === 'ar' ? selectedJob?.title_ar : selectedJob?.title_en)}
             </p>
             {success ? (
               <div style={{ textAlign: 'center', padding: '40px 16px' }}>

@@ -7,6 +7,8 @@ const adminNav = [
   { href: '/admin', label: 'الرئيسية', icon: '📊', exact: true },
   { href: '/admin/analytics', label: 'التحليلات', icon: '📈' },
   { href: '/admin/users', label: 'المستخدمون', icon: '👥' },
+  { href: '/admin/all-contacts', label: 'كل جهات الاتصال', icon: '📞' },
+  { href: '/admin/jobs', label: 'الوظائف', icon: '💼' },
   { href: '/admin/plans', label: 'الخطط', icon: '📦' },
   { href: '/admin/codes', label: 'أكواد التفعيل', icon: '🔑' },
   { href: '/admin/tickets', label: 'تذاكر الدعم', icon: '🎫' },
