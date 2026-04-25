@@ -462,32 +462,63 @@ class WhatsAppService {
         settings?.settings?.default_system_prompt ||
         'أنت مساعد ذكي ومحترف لخدمة العملاء. أجب باللغة التي يكتب بها العميل، بشكل ودود ومختصر.'
 
-      const primaryModel = device.ai_model || 'gemini-1.5-flash'
-      const fallbackModels = [primaryModel, 'gemini-1.5-flash', 'gemini-1.5-flash-latest']
-        .filter((v, i, arr) => arr.indexOf(v) === i)
+      // Models that work on Gemini free tier (April 2025+)
+      // Old gemini-1.5-flash & gemini-2.0-flash retired/quota=0 on free tier.
+      // We try BOTH v1 and v1beta API versions for maximum compatibility.
+      const primaryModel = device.ai_model
+      const attempts = [
+        // primary user-selected (if set)
+        ...(primaryModel ? [
+          { model: primaryModel, apiVersion: 'v1' },
+          { model: primaryModel, apiVersion: 'v1beta' },
+        ] : []),
+        // current free-tier models (April 2025+)
+        { model: 'gemini-2.5-flash', apiVersion: 'v1' },
+        { model: 'gemini-2.5-flash-lite', apiVersion: 'v1' },
+        { model: 'gemini-2.0-flash-exp', apiVersion: 'v1beta' },
+        { model: 'gemini-2.0-flash-001', apiVersion: 'v1' },
+        // legacy fallbacks
+        { model: 'gemini-1.5-flash-002', apiVersion: 'v1' },
+        { model: 'gemini-1.5-flash-8b', apiVersion: 'v1' },
+        { model: 'gemini-1.5-flash-002', apiVersion: 'v1beta' },
+        { model: 'gemini-pro', apiVersion: 'v1' },
+      ]
+      // dedupe
+      const seen = new Set()
+      const dedupedAttempts = attempts.filter(a => {
+        const key = `${a.model}|${a.apiVersion}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
 
       const genAI = new GoogleGenerativeAI(apiKey)
       let reply = null
       let usedModel = null
       let lastErr = null
 
-      for (const modelName of fallbackModels) {
+      for (const { model: modelName, apiVersion } of dedupedAttempts) {
         try {
-          console.log(`[AI] 🤖 Trying ${modelName}...`)
-          const model = genAI.getGenerativeModel({
-            model: modelName,
-            systemInstruction: systemPrompt,
-            generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
-          })
+          console.log(`[AI] 🤖 Trying ${modelName} (${apiVersion})...`)
+          const model = genAI.getGenerativeModel(
+            {
+              model: modelName,
+              systemInstruction: systemPrompt,
+              generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
+            },
+            { apiVersion }
+          )
           const chat = model.startChat({ history: chatHistory })
           const result = await chat.sendMessage(text)
           reply = result.response.text()
-          usedModel = modelName
-          console.log(`[AI] ✅ ${modelName} replied: "${(reply || '').substring(0, 80)}"`)
+          usedModel = `${modelName}@${apiVersion}`
+          console.log(`[AI] ✅ ${usedModel} replied: "${(reply || '').substring(0, 80)}"`)
           if (reply && reply.trim()) break
         } catch (err) {
           lastErr = err
-          console.warn(`[AI] ❌ ${modelName} failed: ${err.message}`)
+          // Concise log: just status code or first part of message
+          const short = (err.message || '').substring(0, 120)
+          console.warn(`[AI] ❌ ${modelName}@${apiVersion}: ${short}`)
         }
       }
 
