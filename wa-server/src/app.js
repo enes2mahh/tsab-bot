@@ -68,6 +68,8 @@ server.listen(PORT, async () => {
   logger.info(`🚀 WA Server running on port ${PORT}`)
   await whatsappService.restoreAllSessions()
   logger.info('✅ Sessions restored')
+  whatsappService.startStoriesWorker()
+  logger.info('📸 Stories worker started')
 })
 
 module.exports = { app, io }

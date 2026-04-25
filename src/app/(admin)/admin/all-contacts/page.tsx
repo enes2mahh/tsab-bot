@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Search, Download, Globe, Filter, Phone, X } from 'lucide-react'
+import { Users, Search, Download, Globe, Filter, Phone, X, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { exportData, type ExportFormat } from '@/lib/export'
 
 interface ContactRow {
   id: string
@@ -54,6 +55,7 @@ export default function AdminAllContactsPage() {
   const [filterCountry, setFilterCountry] = useState('')
   const [filterSource, setFilterSource] = useState('')
   const [filterUser, setFilterUser] = useState('')
+  const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
     createClient()
@@ -95,18 +97,24 @@ export default function AdminAllContactsPage() {
   const uniqueUsers = Array.from(new Map(contacts.map((c) => [c.user_id, c.profiles])).entries())
     .filter(([, p]) => p)
 
-  const exportCSV = () => {
-    const csv = [
-      'الاسم,الهاتف,الدولة,البريد,المالك,نوع المالك,المصدر,التصنيفات,تاريخ الإضافة',
-      ...filtered.map((c) =>
-        `"${c.name || ''}","${c.phone}","${c.country_code || ''}","${c.email || ''}","${c.profiles?.name || ''}","${c.profiles?.email || ''}","${SOURCE_LABELS[c.source] || c.source}","${c.tags?.join(';') || ''}","${new Date(c.created_at).toISOString().slice(0, 10)}"`
-      ),
-    ].join('\n')
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `tsab-all-contacts-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
+  const handleExport = (format: ExportFormat) => {
+    setExportOpen(false)
+    exportData(
+      filtered,
+      [
+        { header: 'الاسم', accessor: (c) => c.name || '' },
+        { header: 'الهاتف', accessor: (c) => c.phone },
+        { header: 'الدولة', accessor: (c) => c.country_code || '' },
+        { header: 'البريد', accessor: (c) => c.email || '' },
+        { header: 'المالك', accessor: (c) => c.profiles?.name || '' },
+        { header: 'بريد المالك', accessor: (c) => c.profiles?.email || '' },
+        { header: 'المصدر', accessor: (c) => SOURCE_LABELS[c.source] || c.source },
+        { header: 'التصنيفات', accessor: (c) => (c.tags || []).join('; ') },
+        { header: 'تاريخ الإضافة', accessor: (c) => new Date(c.created_at).toISOString().slice(0, 10) },
+      ],
+      `tsab-all-contacts-${new Date().toISOString().slice(0, 10)}`,
+      format,
+    )
   }
 
   return (
@@ -116,9 +124,17 @@ export default function AdminAllContactsPage() {
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>كل جهات الاتصال</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>جهات اتصال جميع المستخدمين عبر المنصة — {contacts.length.toLocaleString('ar')} رقم</p>
         </div>
-        <button onClick={exportCSV} className="btn-primary">
-          <Download size={15} /> تصدير ({filtered.length})
-        </button>
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setExportOpen(!exportOpen)} className="btn-primary">
+            <Download size={15} /> تصدير ({filtered.length}) <ChevronDown size={13} />
+          </button>
+          {exportOpen && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', minWidth: '160px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 100 }}>
+              <button onClick={() => handleExport('csv')} style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Tajawal, sans-serif', textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px' }}>📄 CSV</button>
+              <button onClick={() => handleExport('xlsx')} style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Tajawal, sans-serif', textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px', borderTop: '1px solid var(--border)' }}>📊 Excel</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stats */}

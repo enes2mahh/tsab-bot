@@ -68,4 +68,16 @@ router.post('/list', async (req, res) => {
   }
 })
 
+// POST /messages/story - post a WhatsApp Status (best-effort, unofficial)
+router.post('/story', async (req, res) => {
+  const { deviceId, type, caption, mediaUrl, textColor, backgroundColor } = req.body
+  if (!deviceId) return res.status(400).json({ error: 'deviceId required' })
+  try {
+    const result = await whatsappService.postStory({ deviceId, type, caption, mediaUrl, textColor, backgroundColor })
+    res.json({ success: true, ...result })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 module.exports = router

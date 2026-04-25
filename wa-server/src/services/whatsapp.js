@@ -941,6 +941,84 @@ class WhatsAppService {
     const entry = sessions.get(deviceId)
     return !!entry?.sock?.user
   }
+
+  // ========== STORIES (status@broadcast) ==========
+  // Best-effort posting via Baileys. Unofficial — may break.
+  async postStory({ deviceId, type, caption, mediaUrl, textColor, backgroundColor }) {
+    const sock = this._getSock(deviceId)
+    const jid = 'status@broadcast'
+    let payload
+
+    if (type === 'image') {
+      if (!mediaUrl) throw new Error('mediaUrl required for image stories')
+      payload = { image: { url: mediaUrl }, caption: caption || '' }
+    } else if (type === 'video') {
+      if (!mediaUrl) throw new Error('mediaUrl required for video stories')
+      payload = { video: { url: mediaUrl }, caption: caption || '' }
+    } else {
+      // Text story
+      payload = {
+        text: caption || '',
+        backgroundColor: backgroundColor || '#7C3AED',
+        font: 0,
+      }
+    }
+
+    await sock.sendMessage(jid, payload, {
+      backgroundColor: backgroundColor || '#7C3AED',
+    })
+    return { posted: true }
+  }
+
+  // Polls scheduled_stories table every minute and posts due stories
+  startStoriesWorker() {
+    setInterval(async () => {
+      try {
+        const nowIso = new Date().toISOString()
+        const { data: due } = await supabase
+          .from('scheduled_stories')
+          .select('*')
+          .eq('status', 'pending')
+          .lte('scheduled_at', nowIso)
+          .limit(20)
+
+        if (!due?.length) return
+
+        for (const s of due) {
+          try {
+            if (!this.isConnected(s.device_id)) {
+              await supabase.from('scheduled_stories').update({
+                status: 'failed',
+                error_message: 'الجهاز غير متصل',
+              }).eq('id', s.id)
+              continue
+            }
+            await this.postStory({
+              deviceId: s.device_id,
+              type: s.type,
+              caption: s.caption,
+              mediaUrl: s.media_url,
+              textColor: s.text_color,
+              backgroundColor: s.background_color,
+            })
+            await supabase.from('scheduled_stories').update({
+              status: 'sent',
+              posted_at: new Date().toISOString(),
+            }).eq('id', s.id)
+            console.log(`[stories] ✅ posted ${s.id}`)
+          } catch (err) {
+            console.error(`[stories] ❌ ${s.id}:`, err.message)
+            await supabase.from('scheduled_stories').update({
+              status: 'failed',
+              error_message: err.message?.substring(0, 250),
+            }).eq('id', s.id)
+          }
+        }
+      } catch (err) {
+        console.error('[stories worker] error:', err.message)
+      }
+    }, 60_000) // every 60 seconds
+  }
 }
 
 const whatsappService = new WhatsAppService()

@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BookOpen, Plus, Search, Import, Download, Trash2, Tag, Phone, X, MessageCircle } from 'lucide-react'
+import { BookOpen, Plus, Search, Import, Download, Trash2, Tag, Phone, X, MessageCircle, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { exportData, type ExportFormat } from '@/lib/export'
 
 interface Contact {
   id: string; phone: string; name: string | null; email: string | null
@@ -58,6 +59,7 @@ export default function ContactsPage() {
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Contact | null>(null)
+  const [exportOpen, setExportOpen] = useState(false)
 
   const fetchContacts = async () => {
     const { data } = await createClient().from('contacts').select('*').order('created_at', { ascending: false })
@@ -73,7 +75,23 @@ export default function ContactsPage() {
     fetchContacts()
   }
 
-  const exportCSV = () => {
+  const handleExport = (format: ExportFormat) => {
+    setExportOpen(false)
+    exportData(
+      contacts,
+      [
+        { header: 'الاسم', accessor: (c) => c.name || '' },
+        { header: 'الهاتف', accessor: (c) => c.phone },
+        { header: 'البريد', accessor: (c) => c.email || '' },
+        { header: 'التصنيفات', accessor: (c) => (c.tags || []).join('; ') },
+        { header: 'الملاحظات', accessor: (c) => c.notes || '' },
+        { header: 'تاريخ الإضافة', accessor: (c) => new Date(c.created_at).toLocaleDateString('en-CA') },
+      ],
+      `tsab-contacts-${new Date().toISOString().slice(0, 10)}`,
+      format,
+    )
+  }
+  const _legacyExportCSV = () => {
     const csv = ['الاسم,الهاتف,البريد,التصنيفات', ...contacts.map(c => `${c.name || ''},${c.phone},${c.email || ''},${c.tags?.join(';') || ''}`)].join('\n')
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'contacts.csv'; a.click()
@@ -141,7 +159,21 @@ export default function ContactsPage() {
             <Import size={15} /> استيراد CSV
             <input type="file" hidden accept=".csv" onChange={handleImportCSV} />
           </label>
-          <button onClick={exportCSV} className="btn-secondary"><Download size={15} /> تصدير</button>
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setExportOpen(!exportOpen)} className="btn-secondary">
+              <Download size={15} /> تصدير <ChevronDown size={13} />
+            </button>
+            {exportOpen && (
+              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', minWidth: '160px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 100 }}>
+                <button onClick={() => handleExport('csv')} style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Tajawal, sans-serif', textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  📄 CSV
+                </button>
+                <button onClick={() => handleExport('xlsx')} style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Tajawal, sans-serif', textAlign: 'right', display: 'flex', alignItems: 'center', gap: '8px', borderTop: '1px solid var(--border)' }}>
+                  📊 Excel
+                </button>
+              </div>
+            )}
+          </div>
           <button onClick={() => { setEditItem(null); setShowForm(true) }} className="btn-primary"><Plus size={16} /> إضافة</button>
         </div>
       </div>

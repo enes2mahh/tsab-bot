@@ -28,6 +28,8 @@ interface SystemSettings {
   commission_rate: number
   min_withdrawal: number
   referral_hold_days: number
+  // OTP
+  otp_device_id: string
   // System
   maintenance_mode: boolean
   global_announcement: string
@@ -52,19 +54,28 @@ const defaultSettings: SystemSettings = {
   commission_rate: 10,
   min_withdrawal: 25,
   referral_hold_days: 14,
+  otp_device_id: '',
   maintenance_mode: false,
   global_announcement: '',
 }
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>(defaultSettings)
+  const [otpDevices, setOtpDevices] = useState<{ id: string; name: string; phone: string | null; status: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    createClient().from('system_settings').select('*').eq('id', 'global').single().then(({ data }) => {
-      if (data?.settings) setSettings({ ...defaultSettings, ...data.settings })
+    const supabase = createClient()
+    Promise.all([
+      supabase.from('system_settings').select('*').eq('id', 'global').single(),
+      supabase.from('devices').select('id, name, phone, status, profiles(role)').eq('status', 'connected'),
+    ]).then(([s, d]) => {
+      if (s.data?.settings) setSettings({ ...defaultSettings, ...s.data.settings })
+      // Filter to admin-owned connected devices only (safer for OTP)
+      const adminDevices = (d.data || []).filter((dev: any) => dev.profiles?.role === 'admin')
+      setOtpDevices(adminDevices.length ? adminDevices : (d.data || []))
       setLoading(false)
     })
   }, [])
@@ -142,6 +153,29 @@ export default function AdminSettingsPage() {
             hint={<>احصل على مفتاح من <a href="https://aistudio.google.com" target="_blank" style={{ color: 'var(--accent-violet-light)' }}>aistudio.google.com</a>. يستخدم لجميع المستخدمين كافتراضي.</>}
           />
           <Textarea label="System Prompt الافتراضي" value={settings.default_system_prompt} onChange={(v) => update('default_system_prompt', v)} placeholder="..." />
+        </Section>
+
+        {/* === OTP === */}
+        <Section icon={<Mail size={16} />} title="🔐 إعدادات التحقق برقم الهاتف (WhatsApp OTP)">
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.7 }}>
+            عند إنشاء حساب جديد، نُرسل رمز تحقق عبر واتساب من الجهاز المختار أدناه. لو لم تختر جهازاً → يُتجاوز التحقق ويتم إنشاء الحساب مباشرةً (للتطوير).
+          </p>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>الجهاز المرسل لرسائل OTP</label>
+            <select className="input-cosmic" value={settings.otp_device_id} onChange={(e) => update('otp_device_id', e.target.value)}>
+              <option value="">— لا يوجد (تجاوز التحقق) —</option>
+              {otpDevices.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}{d.phone ? ` (${d.phone})` : ''} {d.status === 'connected' ? '✅' : '❌'}
+                </option>
+              ))}
+            </select>
+            {otpDevices.length === 0 && (
+              <p style={{ fontSize: '11px', color: '#F59E0B', marginTop: '4px' }}>
+                ⚠️ لا يوجد جهاز متصل. اربط جهاز واتساب باسم الأدمن أولاً من <a href="/devices" style={{ color: 'var(--accent-violet-light)' }}>صفحة الأجهزة</a>
+              </p>
+            )}
+          </div>
         </Section>
 
         {/* === Referrals === */}

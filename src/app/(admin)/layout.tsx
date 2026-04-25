@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { StarField } from '@/components/cosmic/StarField'
+import { NotificationBell } from '@/components/admin/NotificationBell'
 
 const adminNav = [
   { href: '/admin', label: 'الرئيسية', icon: '📊', exact: true },
@@ -70,6 +71,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <NotificationBell />
           <div style={{ textAlign: 'left' }}>
             <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>{profile?.name || profile?.email}</div>
             <div style={{ fontSize: '11px', color: '#EF4444' }}>Super Admin</div>

@@ -7,13 +7,15 @@ import {
   Home, Smartphone, Megaphone, MessageSquare, Bot,
   GitBranch, FileText, BookOpen, FolderOpen, BarChart3,
   Ticket, Crown, Settings, TrendingUp, Plug, LogOut,
-  ChevronLeft, Zap, Filter, Flame, Store, Sparkles
+  ChevronLeft, Zap, Filter, Flame, Store, Sparkles, Inbox, Image
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
   { href: '/home', icon: Home, label: 'الرئيسية', color: '#A78BFA' },
   { href: '/devices', icon: Smartphone, label: 'الأجهزة', color: '#10B981' },
+  { href: '/messenger', icon: Inbox, label: 'صندوق الواتس', color: '#25D366' },
+  { href: '/stories', icon: Image, label: 'ستوريز واتس', color: '#EC4899' },
   { href: '/business', icon: Store, label: 'الملف التجاري', color: '#F472B6' },
   { href: '/faqs', icon: Sparkles, label: 'الأسئلة المتكررة', color: '#A78BFA' },
   { href: '/campaigns', icon: Megaphone, label: 'الحملات', color: '#60A5FA' },
