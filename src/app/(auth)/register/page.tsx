@@ -142,7 +142,7 @@ function RegisterForm() {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
                 <input id="register-terms" type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--accent-violet)', width: '16px', height: '16px' }} />
                 <label htmlFor="register-terms" style={{ fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: 1.5 }}>
-                  أوافق على{' '}<a href="#" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>شروط الخدمة</a>{' '}و{' '}<a href="#" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>سياسة الخصوصية</a>
+                  أوافق على{' '}<a href="/terms" target="_blank" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>شروط الخدمة</a>{' '}و{' '}<a href="/privacy" target="_blank" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>سياسة الخصوصية</a>
                 </label>
               </div>
 

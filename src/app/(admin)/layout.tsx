@@ -10,6 +10,7 @@ const adminNav = [
   { href: '/admin/plans', label: 'الخطط', icon: '📦' },
   { href: '/admin/codes', label: 'أكواد التفعيل', icon: '🔑' },
   { href: '/admin/tickets', label: 'تذاكر الدعم', icon: '🎫' },
+  { href: '/admin/inquiries', label: 'صندوق الوارد', icon: '📥' },
   { href: '/admin/referrals', label: 'الإحالات', icon: '💰' },
   { href: '/admin/settings', label: 'إعدادات النظام', icon: '⚙️' },
 ]

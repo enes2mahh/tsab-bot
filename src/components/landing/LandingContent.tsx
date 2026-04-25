@@ -12,8 +12,8 @@ type Lang = 'ar' | 'en'
 // ===== TRANSLATIONS =====
 const T = {
   ar: {
-    nav: ['الميزات', 'الأسعار', 'API', 'تواصل'],
-    navIds: ['features', 'pricing', 'api', 'contact'],
+    nav: ['الميزات', 'الأسعار', 'مركز المساعدة', 'تواصل'],
+    navIds: ['features', 'pricing', 'help', 'contact'],
     login: 'تسجيل الدخول', register: 'ابدأ مجاناً',
     badge: 'مدعوم بـ Google Gemini 2.0 Flash',
     heroTitle1: 'أتمتة واتساب بقوة ', heroTitle2: 'الذكاء الاصطناعي',
@@ -42,8 +42,8 @@ const T = {
     dir: 'rtl',
   },
   en: {
-    nav: ['Features', 'Pricing', 'API', 'Contact'],
-    navIds: ['features', 'pricing', 'api', 'contact'],
+    nav: ['Features', 'Pricing', 'Help', 'Contact'],
+    navIds: ['features', 'pricing', 'help', 'contact'],
     login: 'Login', register: 'Start Free',
     badge: 'Powered by Google Gemini 2.0 Flash',
     heroTitle1: 'WhatsApp Automation with ', heroTitle2: 'AI Power',
@@ -138,13 +138,19 @@ function Navbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-          {t.nav.map((item, i) => (
-            <a key={item} href={`#${t.navIds[i]}`} style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>
-              {item}
-            </a>
-          ))}
+          {t.nav.map((item, i) => {
+            const id = t.navIds[i]
+            // 'features' and 'pricing' are anchors on this page; 'help' and 'contact' are real pages
+            const href = id === 'features' || id === 'pricing' ? `#${id}` : `/${id}`
+            const Element = href.startsWith('#') ? 'a' : Link
+            return (
+              <Element key={item} href={href} style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }}
+                onMouseEnter={(e: any) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                onMouseLeave={(e: any) => (e.currentTarget.style.color = 'var(--text-secondary)')}>
+                {item}
+              </Element>
+            )
+          })}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

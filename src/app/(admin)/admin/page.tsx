@@ -105,6 +105,7 @@ export default function AdminPage() {
               { href: '/admin/users', label: '👥 إدارة المستخدمين', desc: 'عرض وإدارة كل المستخدمين' },
               { href: '/admin/plans', label: '📦 إدارة الخطط', desc: 'إضافة وتعديل خطط الاشتراك' },
               { href: '/admin/codes', label: '🔑 أكواد التفعيل', desc: 'إنشاء وإدارة الأكواد' },
+              { href: '/admin/inquiries', label: '📥 صندوق الوارد', desc: 'تواصل، توظيف، شراكات' },
               { href: '/admin/tickets', label: '🎫 التذاكر والدعم', desc: 'تذاكر المستخدمين' },
               { href: '/admin/referrals', label: '💰 الإحالات والسحوبات', desc: 'طلبات السحب المعلقة' },
               { href: '/admin/settings', label: '⚙️ إعدادات النظام', desc: 'Gemini API، صيانة، إعلانات' },
