@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { Zap, Globe, Menu, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Zap, Globe, Menu, X, Mail, Phone } from 'lucide-react'
 import { StarField } from '@/components/cosmic/StarField'
-
-type Lang = 'ar' | 'en'
+import { useLang, type Lang } from '@/lib/lang'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV = {
   ar: [
@@ -75,9 +75,32 @@ const FOOTER = {
   },
 }
 
-export function PublicNavbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
+interface PlatformSettings {
+  platform_name?: string
+  platform_logo_url?: string
+  contact_email?: string
+  contact_phone?: string
+  social_twitter?: string
+  social_facebook?: string
+  social_instagram?: string
+  social_linkedin?: string
+  social_youtube?: string
+  social_tiktok?: string
+  social_whatsapp?: string
+}
+
+export function PublicNavbar() {
+  const { lang, toggleLang } = useLang()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [settings, setSettings] = useState<PlatformSettings>({})
   const t = NAV[lang]
+
+  useEffect(() => {
+    createClient().from('system_settings').select('settings').eq('id', 'global').single()
+      .then(({ data }) => setSettings(data?.settings || {}))
+  }, [])
+
+  const platformName = settings.platform_name || 'Tsab Bot'
 
   return (
     <nav style={{
@@ -91,10 +114,14 @@ export function PublicNavbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang)
         direction: lang === 'ar' ? 'rtl' : 'ltr',
       }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={18} color="white" />
-          </div>
-          <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
+          {settings.platform_logo_url ? (
+            <img src={settings.platform_logo_url} alt={platformName} style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={18} color="white" />
+            </div>
+          )}
+          <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>{platformName}</span>
         </Link>
 
         <div className="hide-mobile" style={{ display: 'flex', gap: '28px' }}>
@@ -108,7 +135,7 @@ export function PublicNavbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang)
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} style={{
+          <button onClick={toggleLang} style={{
             display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px',
             background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)',
             borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer',
@@ -141,19 +168,33 @@ export function PublicNavbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang)
       )}
 
       <style jsx global>{`
-        @media (max-width: 720px) {
-          .hide-mobile { display: none !important; }
-        }
-        @media (min-width: 721px) {
-          .show-mobile { display: none !important; }
-        }
+        @media (max-width: 720px) { .hide-mobile { display: none !important; } }
+        @media (min-width: 721px) { .show-mobile { display: none !important; } }
       `}</style>
     </nav>
   )
 }
 
-export function PublicFooter({ lang }: { lang: Lang }) {
+export function PublicFooter() {
+  const { lang } = useLang()
+  const [settings, setSettings] = useState<PlatformSettings>({})
   const t = FOOTER[lang]
+
+  useEffect(() => {
+    createClient().from('system_settings').select('settings').eq('id', 'global').single()
+      .then(({ data }) => setSettings(data?.settings || {}))
+  }, [])
+
+  const socials = [
+    { url: settings.social_twitter, badge: '𝕏', color: '#000', label: 'Twitter' },
+    { url: settings.social_facebook, badge: 'f', color: '#1877F2', label: 'Facebook' },
+    { url: settings.social_instagram, badge: 'IG', color: '#E4405F', label: 'Instagram' },
+    { url: settings.social_linkedin, badge: 'in', color: '#0A66C2', label: 'LinkedIn' },
+    { url: settings.social_youtube, badge: 'YT', color: '#FF0000', label: 'YouTube' },
+    { url: settings.social_whatsapp, badge: 'WA', color: '#25D366', label: 'WhatsApp' },
+    { url: settings.social_tiktok, badge: 'TT', color: '#000', label: 'TikTok' },
+  ].filter(s => s.url && s.url.trim())
+
   return (
     <footer style={{
       borderTop: '1px solid var(--border)', padding: '48px 24px 32px',
@@ -168,9 +209,44 @@ export function PublicFooter({ lang }: { lang: Lang }) {
             <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Zap size={16} color="white" />
             </div>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{settings.platform_name || 'Tsab Bot'}</span>
           </div>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '260px' }}>{t.desc}</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '260px', marginBottom: '16px' }}>{t.desc}</p>
+
+          {/* Contact info */}
+          {(settings.contact_email || settings.contact_phone) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '14px' }}>
+              {settings.contact_email && (
+                <a href={`mailto:${settings.contact_email}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                  <Mail size={12} /> {settings.contact_email}
+                </a>
+              )}
+              {settings.contact_phone && (
+                <a href={`tel:${settings.contact_phone}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', textDecoration: 'none', direction: 'ltr' }}>
+                  <Phone size={12} /> {settings.contact_phone}
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Social icons */}
+          {socials.length > 0 && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {socials.map(s => (
+                <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" title={s.label} style={{
+                  width: '32px', height: '32px', borderRadius: '8px',
+                  background: s.color, color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '12px', fontWeight: 700, textDecoration: 'none',
+                  transition: 'transform 0.2s',
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                  onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
+                  {s.badge}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         {t.cols.map(col => (
           <div key={col.title}>
@@ -197,14 +273,17 @@ export function PublicFooter({ lang }: { lang: Lang }) {
   )
 }
 
-export function PublicShell({ children, lang, setLang }: { children: React.ReactNode; lang: Lang; setLang: (l: Lang) => void }) {
+// Backwards-compatible signature: lang/setLang are now optional and ignored.
+// The shell reads lang from LangContext.
+export function PublicShell({ children }: { children: React.ReactNode; lang?: Lang; setLang?: (l: Lang) => void }) {
+  const { lang } = useLang()
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', position: 'relative' }} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <StarField />
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <PublicNavbar lang={lang} setLang={setLang} />
+        <PublicNavbar />
         {children}
-        <PublicFooter lang={lang} />
+        <PublicFooter />
       </div>
     </div>
   )

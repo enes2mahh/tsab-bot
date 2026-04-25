@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Mail, Phone, MessageSquare, Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { useLang } from '@/lib/lang'
 
 const T = {
   ar: {
@@ -36,7 +37,7 @@ const T = {
 }
 
 export default function ContactPage() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar')
+  const { lang } = useLang()
   const t = T[lang]
 
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' })
@@ -72,7 +73,7 @@ export default function ContactPage() {
   }
 
   return (
-    <PublicShell lang={lang} setLang={setLang}>
+    <PublicShell>
       <section style={{ maxWidth: '900px', margin: '0 auto', padding: '60px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.title}</h1>

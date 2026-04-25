@@ -6,8 +6,7 @@ import {
   Zap, Bot, Megaphone, Clock, Plug, Pointer, BarChart3,
   Check, ChevronDown, ChevronUp, Globe
 } from 'lucide-react'
-
-type Lang = 'ar' | 'en'
+import { useLang, type Lang } from '@/lib/lang'
 
 // ===== TRANSLATIONS =====
 const T = {
@@ -125,7 +124,8 @@ const faqsData = {
 }
 
 // ===== NAVBAR =====
-function Navbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
+function Navbar() {
+  const { lang, toggleLang } = useLang()
   const t = T[lang]
   return (
     <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(8,8,18,0.85)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)', padding: '0 24px' }}>
@@ -155,7 +155,7 @@ function Navbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {/* Language toggle */}
-          <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px', fontFamily: 'Tajawal, sans-serif', transition: 'all 0.2s' }}
+          <button onClick={toggleLang} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px', fontFamily: 'Tajawal, sans-serif', transition: 'all 0.2s' }}
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent-violet)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}>
             <Globe size={14} />
@@ -170,7 +170,8 @@ function Navbar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
 }
 
 // ===== HERO =====
-function Hero({ lang }: { lang: Lang }) {
+function Hero() {
+  const { lang } = useLang()
   const t = T[lang]
   return (
     <section style={{ textAlign: 'center', padding: '100px 24px 80px', position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', direction: t.dir as any }}>
@@ -200,7 +201,8 @@ function Hero({ lang }: { lang: Lang }) {
 }
 
 // ===== FEATURES =====
-function Features({ lang }: { lang: Lang }) {
+function Features() {
+  const { lang } = useLang()
   const t = T[lang]
   const features = featuresData[lang]
   return (
@@ -227,7 +229,8 @@ function Features({ lang }: { lang: Lang }) {
 }
 
 // ===== PRICING =====
-function Pricing({ lang }: { lang: Lang }) {
+function Pricing() {
+  const { lang } = useLang()
   const t = T[lang]
   const plans = plansData[lang]
   return (
@@ -276,7 +279,8 @@ function Pricing({ lang }: { lang: Lang }) {
 }
 
 // ===== FAQ =====
-function FAQ({ lang }: { lang: Lang }) {
+function FAQ() {
+  const { lang } = useLang()
   const t = T[lang]
   const faqs = faqsData[lang]
   const [open, setOpen] = useState<number | null>(null)
@@ -301,7 +305,8 @@ function FAQ({ lang }: { lang: Lang }) {
 }
 
 // ===== CTA =====
-function CTASection({ lang }: { lang: Lang }) {
+function CTASection() {
+  const { lang } = useLang()
   const t = T[lang]
   return (
     <section style={{ padding: '80px 24px', position: 'relative', zIndex: 1, textAlign: 'center', direction: t.dir as any }}>
@@ -317,7 +322,8 @@ function CTASection({ lang }: { lang: Lang }) {
 }
 
 // ===== FOOTER =====
-function Footer({ lang }: { lang: Lang }) {
+function Footer() {
+  const { lang } = useLang()
   const t = T[lang]
   return (
     <footer style={{ borderTop: '1px solid var(--border)', padding: '48px 24px 32px', position: 'relative', zIndex: 1, direction: t.dir as any }}>
@@ -358,16 +364,16 @@ function Footer({ lang }: { lang: Lang }) {
 
 // ===== MAIN EXPORT =====
 export function LandingContent() {
-  const [lang, setLang] = useState<Lang>('ar')
+  const { lang } = useLang()
   return (
     <div dir={T[lang].dir}>
-      <Navbar lang={lang} setLang={setLang} />
-      <Hero lang={lang} />
-      <Features lang={lang} />
-      <Pricing lang={lang} />
-      <FAQ lang={lang} />
-      <CTASection lang={lang} />
-      <Footer lang={lang} />
+      <Navbar />
+      <Hero />
+      <Features />
+      <Pricing />
+      <FAQ />
+      <CTASection />
+      <Footer />
     </div>
   )
 }

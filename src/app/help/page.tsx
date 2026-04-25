@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search, ChevronDown, BookOpen, Smartphone, Megaphone, Bot, CreditCard, Shield, HelpCircle } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { useLang } from '@/lib/lang'
 import Link from 'next/link'
 
 const T = {
@@ -87,7 +88,7 @@ const T = {
 }
 
 export default function HelpPage() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar')
+  const { lang } = useLang()
   const t = T[lang]
   const [search, setSearch] = useState('')
   const [openCat, setOpenCat] = useState<string | null>(t.cats[0]?.id || null)
@@ -103,7 +104,7 @@ export default function HelpPage() {
   })).filter(c => c.items.length > 0)
 
   return (
-    <PublicShell lang={lang} setLang={setLang}>
+    <PublicShell>
       <section style={{ maxWidth: '900px', margin: '0 auto', padding: '60px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <HelpCircle size={48} color="var(--accent-violet-light)" style={{ marginBottom: '16px' }} />

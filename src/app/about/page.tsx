@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { Target, Heart, Users, Zap, TrendingUp, Globe } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { useLang } from '@/lib/lang'
 import Link from 'next/link'
 
 const T = {
@@ -73,11 +73,11 @@ So we decided to build the solution we needed ourselves. A complete, Arabic-firs
 }
 
 export default function AboutPage() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar')
+  const { lang } = useLang()
   const t = T[lang]
 
   return (
-    <PublicShell lang={lang} setLang={setLang}>
+    <PublicShell>
       <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '60px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.title}</h1>

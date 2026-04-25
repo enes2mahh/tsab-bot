@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Briefcase, MapPin, Clock, Send, CheckCircle, AlertCircle, Star } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { useLang } from '@/lib/lang'
 
 const T = {
   ar: {
@@ -62,7 +63,7 @@ const T = {
 }
 
 export default function CareersPage() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar')
+  const { lang } = useLang()
   const t = T[lang]
 
   const [showForm, setShowForm] = useState(false)
@@ -107,7 +108,7 @@ export default function CareersPage() {
   }
 
   return (
-    <PublicShell lang={lang} setLang={setLang}>
+    <PublicShell>
       <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.title}</h1>

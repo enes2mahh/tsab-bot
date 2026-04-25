@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, use } from 'react'
+import { use } from 'react'
 import { Smartphone, Megaphone, MessageSquare, Code, Check, Zap, ArrowLeft, ArrowRight } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { useLang, type Lang } from '@/lib/lang'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-
-type Lang = 'ar' | 'en'
 
 const FEATURES: Record<string, {
   ar: { title: string; subtitle: string; icon: any; color: string; bullets: string[]; useCases: { title: string; desc: string }[] }
@@ -187,7 +186,7 @@ const COMMON = {
 
 export default function FeaturePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  const [lang, setLang] = useState<Lang>('ar')
+  const { lang } = useLang()
 
   const data = FEATURES[slug]
   if (!data) notFound()
@@ -196,7 +195,7 @@ export default function FeaturePage({ params }: { params: Promise<{ slug: string
   const c = COMMON[lang]
 
   return (
-    <PublicShell lang={lang} setLang={setLang}>
+    <PublicShell>
       <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '60px 24px' }}>
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px', marginBottom: '32px' }}>
           {lang === 'ar' ? <ArrowRight size={14} /> : <ArrowLeft size={14} />} {c.back}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Handshake, Award, TrendingUp, Users, Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { useLang } from '@/lib/lang'
 
 const T = {
   ar: {
@@ -64,7 +65,7 @@ const T = {
 }
 
 export default function PartnersPage() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar')
+  const { lang } = useLang()
   const t = T[lang]
   const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', website: '', type: t.types_options[0], message: '' })
   const [loading, setLoading] = useState(false)
@@ -98,7 +99,7 @@ export default function PartnersPage() {
   }
 
   return (
-    <PublicShell lang={lang} setLang={setLang}>
+    <PublicShell>
       <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '60px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <Handshake size={48} color="var(--accent-violet-light)" style={{ marginBottom: '16px' }} />

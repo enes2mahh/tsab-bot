@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Sparkles, Mail } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { useLang } from '@/lib/lang'
 import Link from 'next/link'
 
 const T = {
@@ -31,7 +32,7 @@ const T = {
 }
 
 export default function BlogPage() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar')
+  const { lang } = useLang()
   const t = T[lang]
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
@@ -57,7 +58,7 @@ export default function BlogPage() {
   }
 
   return (
-    <PublicShell lang={lang} setLang={setLang}>
+    <PublicShell>
       <section style={{ maxWidth: '700px', margin: '0 auto', padding: '100px 24px', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 16px', background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '30px', marginBottom: '24px', fontSize: '13px', color: '#A78BFA' }}>
           <Sparkles size={14} /> {t.soonBadge}
