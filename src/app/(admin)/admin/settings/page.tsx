@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Save, Key, Globe, AlertTriangle, Bell, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { FileUpload } from '@/components/FileUpload'
 
 interface SystemSettings {
   // Platform
@@ -111,14 +112,24 @@ export default function AdminSettingsPage() {
         {/* === Platform === */}
         <Section icon={<Globe size={16} />} title="إعدادات المنصة">
           <Field label="اسم المنصة" value={settings.platform_name} onChange={(v) => update('platform_name', v)} placeholder="Tsab Bot" />
-          <Field label="رابط الشعار (Logo)" value={settings.platform_logo_url} onChange={(v) => update('platform_logo_url', v)} placeholder="https://example.com/logo.png" hint="يظهر في الـ navbar والـ footer. الأفضل صورة مربعة 200×200." ltr />
-          {settings.platform_logo_url && (
-            <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img src={settings.platform_logo_url} alt="logo preview" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>معاينة الشعار</span>
-            </div>
-          )}
-          <Field label="رابط صورة OG (للمشاركة)" value={settings.og_image_url} onChange={(v) => update('og_image_url', v)} placeholder="https://example.com/og.png" hint="الصورة التي تظهر عند مشاركة الموقع على واتساب/تويتر. يفضل 1200×630." ltr />
+          <FileUpload
+            label="شعار المنصة (Logo)"
+            value={settings.platform_logo_url}
+            onChange={(v) => update('platform_logo_url', v)}
+            folder="logos"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            maxSizeMB={2}
+            hint="يظهر في الـ navbar والـ footer. الأفضل صورة مربعة 200×200 بصيغة PNG شفافة."
+          />
+          <FileUpload
+            label="صورة OG (للمشاركة على وسائل التواصل)"
+            value={settings.og_image_url}
+            onChange={(v) => update('og_image_url', v)}
+            folder="og-images"
+            accept="image/png,image/jpeg,image/webp"
+            maxSizeMB={3}
+            hint="الصورة التي تظهر عند مشاركة الموقع على واتساب/تويتر. يفضل 1200×630."
+          />
           <Textarea label="إعلان عام (يظهر أعلى الصفحات)" value={settings.global_announcement} onChange={(v) => update('global_announcement', v)} placeholder="اتركه فارغاً لإخفاء الإعلان..." />
         </Section>
 

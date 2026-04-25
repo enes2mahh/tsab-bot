@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Image as ImageIcon, Video, Type, Clock, Plus, Trash2, X, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { FileUpload } from '@/components/FileUpload'
 
 interface Device { id: string; name: string; phone: string | null; status: string }
 interface Story {
@@ -100,13 +101,15 @@ function StoryForm({ devices, onClose, onSaved }: { devices: Device[]; onClose: 
           </div>
 
           {type !== 'text' && (
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                رابط الوسائط ({type === 'image' ? 'صورة' : 'فيديو'})
-              </label>
-              <input type="url" className="input-cosmic" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="https://..." style={{ direction: 'ltr' }} />
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>ارفع الملف على Imgur/Drive/Cloudinary وانسخ الرابط المباشر</p>
-            </div>
+            <FileUpload
+              label={type === 'image' ? 'صورة الستوري' : 'فيديو الستوري'}
+              value={mediaUrl}
+              onChange={setMediaUrl}
+              folder={type === 'image' ? 'stories/images' : 'stories/videos'}
+              accept={type === 'image' ? 'image/png,image/jpeg,image/webp' : 'video/mp4,video/webm'}
+              maxSizeMB={type === 'image' ? 5 : 10}
+              hint={type === 'video' ? 'الحد الأقصى 30 ثانية، حجم 10MB' : undefined}
+            />
           )}
 
           <div>
