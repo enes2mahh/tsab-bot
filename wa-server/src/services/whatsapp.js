@@ -7,12 +7,76 @@ const {
 } = require('@whiskeysockets/baileys')
 const QRCode = require('qrcode')
 const { createClient } = require('@supabase/supabase-js')
-const { GoogleGenerativeAI } = require('@google/generative-ai')
 const pino = require('pino')
 const path = require('path')
 const fs = require('fs')
 const axios = require('axios')
 const { SUPABASE_URL, SUPABASE_SERVICE_KEY, GEMINI_API_KEY } = require('../config')
+
+// ========== Direct REST call to Gemini (no SDK = no surprises) ==========
+async function callGeminiREST({ apiKey, model, apiVersion, systemPrompt, history, userText }) {
+  const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${apiKey}`
+
+  const body = {
+    contents: [...history, { role: 'user', parts: [{ text: userText }] }],
+    generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
+  }
+  if (systemPrompt) body.systemInstruction = { parts: [{ text: systemPrompt }] }
+
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const raw = await r.text()
+  if (!r.ok) throw new Error(`HTTP ${r.status}: ${raw.substring(0, 250)}`)
+  const data = JSON.parse(raw)
+  const candidate = data.candidates?.[0]
+  if (!candidate) throw new Error(`No candidate. Response: ${raw.substring(0, 150)}`)
+  return candidate.content?.parts?.[0]?.text || ''
+}
+
+// Same as above but without systemInstruction (legacy models)
+async function callGeminiRESTLegacy({ apiKey, model, apiVersion, systemPrompt, history, userText }) {
+  const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${apiKey}`
+
+  // Inject system prompt into the first message
+  const prefixedHistory = systemPrompt && history.length === 0
+    ? [{ role: 'user', parts: [{ text: `[تعليمات النظام]: ${systemPrompt}\n\n[السؤال]: ${userText}` }] }]
+    : [...history, { role: 'user', parts: [{ text: userText }] }]
+
+  const body = {
+    contents: prefixedHistory,
+    generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
+  }
+
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const raw = await r.text()
+  if (!r.ok) throw new Error(`HTTP ${r.status}: ${raw.substring(0, 250)}`)
+  const data = JSON.parse(raw)
+  const candidate = data.candidates?.[0]
+  if (!candidate) throw new Error(`No candidate. Response: ${raw.substring(0, 150)}`)
+  return candidate.content?.parts?.[0]?.text || ''
+}
+
+// List models available to this key (for diagnostics)
+async function listGeminiModels(apiKey) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+  const r = await fetch(url)
+  if (!r.ok) {
+    const t = await r.text()
+    throw new Error(`HTTP ${r.status}: ${t.substring(0, 200)}`)
+  }
+  const data = await r.json()
+  return (data.models || [])
+    .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map((m) => m.name.replace('models/', ''))
+}
+module.exports.listGeminiModels = listGeminiModels
 
 const logger = pino({ level: 'silent' })
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
@@ -462,63 +526,66 @@ class WhatsAppService {
         settings?.settings?.default_system_prompt ||
         'أنت مساعد ذكي ومحترف لخدمة العملاء. أجب باللغة التي يكتب بها العميل، بشكل ودود ومختصر.'
 
-      // Models that work on Gemini free tier (April 2025+)
-      // Old gemini-1.5-flash & gemini-2.0-flash retired/quota=0 on free tier.
-      // We try BOTH v1 and v1beta API versions for maximum compatibility.
+      // === On first AI call ever, list available models for diagnostics ===
+      try {
+        const available = await listGeminiModels(apiKey)
+        console.log(`[AI] 📋 Models available to this API key: ${available.slice(0, 15).join(', ')}${available.length > 15 ? ` ... (+${available.length - 15} more)` : ''}`)
+      } catch (listErr) {
+        console.warn(`[AI] ⚠️ Could not list models: ${listErr.message}`)
+      }
+
+      // Try direct REST API (bypassing SDK quirks)
       const primaryModel = device.ai_model
       const attempts = [
-        // primary user-selected (if set)
         ...(primaryModel ? [
-          { model: primaryModel, apiVersion: 'v1' },
-          { model: primaryModel, apiVersion: 'v1beta' },
+          { model: primaryModel, apiVersion: 'v1beta', legacy: false },
+          { model: primaryModel, apiVersion: 'v1', legacy: false },
         ] : []),
-        // current free-tier models (April 2025+)
-        { model: 'gemini-2.5-flash', apiVersion: 'v1' },
-        { model: 'gemini-2.5-flash-lite', apiVersion: 'v1' },
-        { model: 'gemini-2.0-flash-exp', apiVersion: 'v1beta' },
-        { model: 'gemini-2.0-flash-001', apiVersion: 'v1' },
-        // legacy fallbacks
-        { model: 'gemini-1.5-flash-002', apiVersion: 'v1' },
-        { model: 'gemini-1.5-flash-8b', apiVersion: 'v1' },
-        { model: 'gemini-1.5-flash-002', apiVersion: 'v1beta' },
-        { model: 'gemini-pro', apiVersion: 'v1' },
+        // Current generation
+        { model: 'gemini-2.5-flash', apiVersion: 'v1beta', legacy: false },
+        { model: 'gemini-2.5-flash-lite', apiVersion: 'v1beta', legacy: false },
+        { model: 'gemini-2.0-flash', apiVersion: 'v1beta', legacy: false },
+        { model: 'gemini-2.0-flash-exp', apiVersion: 'v1beta', legacy: false },
+        { model: 'gemini-2.0-flash-001', apiVersion: 'v1beta', legacy: false },
+        // 1.5 fallbacks
+        { model: 'gemini-1.5-flash-002', apiVersion: 'v1beta', legacy: false },
+        { model: 'gemini-1.5-flash-8b', apiVersion: 'v1beta', legacy: false },
+        // Legacy without systemInstruction support
+        { model: 'gemini-pro', apiVersion: 'v1beta', legacy: true },
       ]
       // dedupe
-      const seen = new Set()
-      const dedupedAttempts = attempts.filter(a => {
-        const key = `${a.model}|${a.apiVersion}`
-        if (seen.has(key)) return false
-        seen.add(key)
+      const seenAttempts = new Set()
+      const dedupedAttempts = attempts.filter((a) => {
+        const k = `${a.model}|${a.apiVersion}`
+        if (seenAttempts.has(k)) return false
+        seenAttempts.add(k)
         return true
       })
 
-      const genAI = new GoogleGenerativeAI(apiKey)
       let reply = null
       let usedModel = null
       let lastErr = null
 
-      for (const { model: modelName, apiVersion } of dedupedAttempts) {
+      for (const att of dedupedAttempts) {
         try {
-          console.log(`[AI] 🤖 Trying ${modelName} (${apiVersion})...`)
-          const model = genAI.getGenerativeModel(
-            {
-              model: modelName,
-              systemInstruction: systemPrompt,
-              generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
-            },
-            { apiVersion }
-          )
-          const chat = model.startChat({ history: chatHistory })
-          const result = await chat.sendMessage(text)
-          reply = result.response.text()
-          usedModel = `${modelName}@${apiVersion}`
+          console.log(`[AI] 🤖 Trying ${att.model} (${att.apiVersion})${att.legacy ? ' [legacy]' : ''}...`)
+          const fn = att.legacy ? callGeminiRESTLegacy : callGeminiREST
+          reply = await fn({
+            apiKey,
+            model: att.model,
+            apiVersion: att.apiVersion,
+            systemPrompt,
+            history: chatHistory,
+            userText: text,
+          })
+          usedModel = `${att.model}@${att.apiVersion}`
           console.log(`[AI] ✅ ${usedModel} replied: "${(reply || '').substring(0, 80)}"`)
           if (reply && reply.trim()) break
         } catch (err) {
           lastErr = err
-          // Concise log: just status code or first part of message
-          const short = (err.message || '').substring(0, 120)
-          console.warn(`[AI] ❌ ${modelName}@${apiVersion}: ${short}`)
+          // Print full first line so we can see HTTP status
+          const short = (err.message || '').substring(0, 250).replace(/\s+/g, ' ')
+          console.warn(`[AI] ❌ ${att.model}@${att.apiVersion}: ${short}`)
         }
       }
 
