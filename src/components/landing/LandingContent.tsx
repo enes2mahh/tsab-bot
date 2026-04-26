@@ -34,7 +34,9 @@ const T = {
       { title: 'الدعم', links: [{ label: 'مركز المساعدة', href: '#' }, { label: 'تواصل معنا', href: '#contact' }, { label: 'سياسة الخصوصية', href: '/privacy' }, { label: 'شروط الخدمة', href: '/terms' }] },
     ],
     footerCopy: '© 2026 Tsab Bot. جميع الحقوق محفوظة.',
-    footerSub: 'صُنع بـ ❤️ للسوق العربي',
+    footerSubPrefix: 'صُنع بـ ❤️ بواسطة ',
+    footerSubName: 'أنس محمود',
+    footerSubHref: 'https://www.enes-elhovete.com/',
     month: 'ريال / شهر', freeTrialDays: 'أيام مجاناً', device: 'جهاز', msg: 'رسالة/شهر',
     subscribe: 'اشترك الآن', freeTrial: 'ابدأ مجاناً',
     popular: '⭐ الأكثر شيوعاً',
@@ -64,7 +66,9 @@ const T = {
       { title: 'Support', links: [{ label: 'Help Center', href: '#' }, { label: 'Contact Us', href: '#contact' }, { label: 'Privacy Policy', href: '/privacy' }, { label: 'Terms of Service', href: '/terms' }] },
     ],
     footerCopy: '© 2026 Tsab Bot. All rights reserved.',
-    footerSub: 'Made with ❤️ for the Arab market',
+    footerSubPrefix: 'Made with ❤️ by ',
+    footerSubName: 'Anas Mahmoud',
+    footerSubHref: 'https://www.enes-elhovete.com/',
     month: 'SAR / month', freeTrialDays: 'days free', device: 'device', msg: 'msg/month',
     subscribe: 'Subscribe Now', freeTrial: 'Start Free',
     popular: '⭐ Most Popular',
@@ -390,7 +394,12 @@ function Footer() {
         </div>
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
           <span>{t.footerCopy}</span>
-          <span>{t.footerSub}</span>
+          <span>
+            {t.footerSubPrefix}
+            <a href={t.footerSubHref} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+              {t.footerSubName}
+            </a>
+          </span>
         </div>
       </div>
     </footer>

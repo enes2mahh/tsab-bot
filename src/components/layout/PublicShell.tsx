@@ -46,7 +46,9 @@ const FOOTER = {
       ]},
     ],
     copy: '© 2026 Tsab Bot. جميع الحقوق محفوظة.',
-    sub: 'صُنع بـ ❤️ للسوق العربي',
+    subPrefix: 'صُنع بـ ❤️ بواسطة ',
+    subName: 'أنس محمود',
+    subHref: 'https://www.enes-elhovete.com/',
   },
   en: {
     desc: 'Complete WhatsApp automation platform powered by AI',
@@ -71,7 +73,9 @@ const FOOTER = {
       ]},
     ],
     copy: '© 2026 Tsab Bot. All rights reserved.',
-    sub: 'Made with ❤️ for the Arab market',
+    subPrefix: 'Made with ❤️ by ',
+    subName: 'Anas Mahmoud',
+    subHref: 'https://www.enes-elhovete.com/',
   },
 }
 
@@ -266,7 +270,12 @@ export function PublicFooter() {
       </div>
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '12px' }}>
         <span>{t.copy}</span>
-        <span>{t.sub}</span>
+        <span>
+          {t.subPrefix}
+          <a href={t.subHref} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+            {t.subName}
+          </a>
+        </span>
       </div>
     </footer>
   )
