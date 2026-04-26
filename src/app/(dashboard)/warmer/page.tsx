@@ -137,7 +137,7 @@ export default function WarmerPage() {
         </div>
       </div>
 
-      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div className="grid-2" style={{ gap: '20px' }}>
         {/* Device Selection */}
         <div className="card">
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>

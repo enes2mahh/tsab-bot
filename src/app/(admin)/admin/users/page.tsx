@@ -268,6 +268,7 @@ export default function AdminUsersPage() {
 
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="responsive-table-wrap">
         <table className="table-cosmic">
           <thead>
             <tr>
@@ -336,6 +337,7 @@ export default function AdminUsersPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Detail Modal */}

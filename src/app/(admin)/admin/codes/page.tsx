@@ -109,6 +109,7 @@ export default function AdminCodesPage() {
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="responsive-table-wrap">
         <table className="table-cosmic">
           <thead><tr><th>الكود</th><th>الخطة</th><th>الاستخدام</th><th>المدة</th><th>انتهاء الكود</th><th>الحالة</th><th>ملاحظات</th><th>الإجراءات</th></tr></thead>
           <tbody>
@@ -140,6 +141,7 @@ export default function AdminCodesPage() {
             ))}
           </tbody>
         </table>
+        </div>
         {codes.length === 0 && !loading && <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-muted)' }}>لا توجد أكواد بعد</div>}
       </div>
 

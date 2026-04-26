@@ -190,7 +190,7 @@ export default function TicketsPage() {
                 <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: مشكلة في الاتصال بالواتساب" className="input-cosmic" />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="grid-2" style={{ marginBottom: '0' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>القسم</label>
                   <select className="input-cosmic" value={department} onChange={(e) => setDepartment(e.target.value)}>

@@ -60,7 +60,7 @@ function PlanForm({ plan, onClose, onSaved }: { plan?: Plan | null; onClose: () 
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+        <div className="grid-2" style={{ gap: '14px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>الاسم (عربي)</label>
             <input className="input-cosmic" value={form.name_ar} onChange={e => setForm({ ...form, name_ar: e.target.value })} placeholder="الاحترافية" />

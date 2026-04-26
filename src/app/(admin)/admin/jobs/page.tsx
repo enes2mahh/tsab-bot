@@ -74,7 +74,7 @@ function JobForm({ job, onClose, onSaved }: { job?: Job | null; onClose: () => v
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+        <div className="grid-2" style={{ gap: '14px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Slug (فريد) *</label>
             <input className="input-cosmic" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/\s/g, '-') })} placeholder="frontend-dev" style={{ direction: 'ltr', fontFamily: 'monospace' }} />

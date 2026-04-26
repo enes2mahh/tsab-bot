@@ -200,9 +200,8 @@ export function PublicFooter() {
       borderTop: '1px solid var(--border)', padding: '48px 24px 32px',
       position: 'relative', zIndex: 1, direction: lang === 'ar' ? 'rtl' : 'ltr',
     }}>
-      <div style={{
-        maxWidth: '1100px', margin: '0 auto', display: 'grid',
-        gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '40px', marginBottom: '40px',
+      <div className="footer-grid" style={{
+        maxWidth: '1100px', margin: '0 auto', marginBottom: '40px',
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>

@@ -179,6 +179,7 @@ export default function AutoReplyPage() {
             <button onClick={() => setShowForm(true)} className="btn-primary"><Plus size={16} /> أضف قاعدة</button>
           </div>
         ) : (
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead><tr><th>الاسم</th><th>الجهاز</th><th>التشغيل</th><th>الكلمة</th><th>الاستخدامات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
             <tbody>
@@ -204,6 +205,7 @@ export default function AutoReplyPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

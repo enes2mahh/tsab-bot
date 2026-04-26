@@ -184,6 +184,7 @@ export default function FilesPage() {
         </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead><tr><th>الاسم</th><th>الحجم</th><th>النوع</th><th>التاريخ</th><th>الإجراءات</th></tr></thead>
             <tbody>
@@ -205,6 +206,7 @@ export default function FilesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
