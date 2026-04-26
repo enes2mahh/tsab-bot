@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Plus, Smartphone, Settings, RefreshCw, Trash2, X, CheckCircle, Wifi, WifiOff, AlertCircle, ExternalLink, Bot } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -334,39 +335,72 @@ function AddDeviceModal({ onClose, onAdded }: { onClose: () => void; onAdded: (d
 // ===== AI SETTINGS MODAL =====
 function AISettingsModal({ device, onClose, onSaved }: { device: Device; onClose: () => void; onSaved: () => void }) {
   const [aiEnabled, setAiEnabled] = useState(device.ai_enabled || false)
-  const [prompt, setPrompt] = useState(device.ai_prompt || '')
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
     setSaving(true)
-    await createClient().from('devices').update({ ai_enabled: aiEnabled, ai_prompt: prompt || null }).eq('id', device.id)
+    await createClient().from('devices').update({ ai_enabled: aiEnabled }).eq('id', device.id)
     setSaving(false)
     onSaved()
     onClose()
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' }} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="glass" style={{ borderRadius: '20px', padding: '32px', maxWidth: '480px', width: '95%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>إعدادات الذكاء الاصطناعي</h3>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)', padding: '16px' }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="glass" style={{ borderRadius: '20px', padding: '28px', maxWidth: '500px', width: '100%', maxHeight: '92vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>🤖 الذكاء الاصطناعي</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
         </div>
-        <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>🤖 جهاز: <strong style={{ color: 'var(--text-primary)' }}>{device.name}</strong> — {device.phone || 'لا يوجد رقم'}</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '14px', background: aiEnabled ? 'rgba(124,58,237,0.1)' : 'var(--bg-secondary)', border: `1px solid ${aiEnabled ? 'var(--accent-violet)' : 'var(--border)'}`, borderRadius: '12px' }}>
-            <input type="checkbox" checked={aiEnabled} onChange={e => setAiEnabled(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent-violet)' }} />
+
+        <div style={{ padding: '12px 14px', background: 'var(--bg-secondary)', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
+          الجهاز: <strong style={{ color: 'var(--text-primary)' }}>{device.name}</strong> {device.phone ? `— ${device.phone}` : ''}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Toggle */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '16px', background: aiEnabled ? 'rgba(124,58,237,0.1)' : 'var(--bg-secondary)', border: `1px solid ${aiEnabled ? 'var(--accent-violet)' : 'var(--border)'}`, borderRadius: '12px' }}>
+            <input type="checkbox" checked={aiEnabled} onChange={e => setAiEnabled(e.target.checked)} style={{ width: '20px', height: '20px', accentColor: 'var(--accent-violet)', flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>تفعيل الرد بالذكاء الاصطناعي</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>عند عدم وجود رد تلقائي مطابق، يرد Gemini AI</div>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>تفعيل الرد التلقائي بالذكاء الاصطناعي</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>عند عدم وجود ردّ مباشر مطابق، يقوم Gemini AI بالرد على عملائك تلقائياً</div>
             </div>
           </label>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>System Prompt مخصص (اختياري)</label>
-            <textarea className="input-cosmic" rows={4} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="اتركه فارغاً لاستخدام الافتراضي..." style={{ resize: 'vertical' }} />
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>مثال: أنت مساعد لمتجر إلكتروني، أجب عن المنتجات والأسعار فقط.</p>
-          </div>
-          <button onClick={handleSave} disabled={saving} className="btn-primary" style={{ justifyContent: 'center' }}>{saving ? 'جاري الحفظ...' : '💾 حفظ إعدادات AI'}</button>
+
+          {/* Info: how AI works */}
+          {aiEnabled && (
+            <div style={{ padding: '14px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '12px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+              <div style={{ fontWeight: 600, color: '#10B981', marginBottom: '6px' }}>✨ كيف يعمل البوت؟</div>
+              <div>1. يفحص رسالة العميل ويبحث عن FAQ مطابق ← يردّ مجاناً</div>
+              <div>2. يفحص قواعد الردّ التلقائي والتحيات ← يردّ مجاناً</div>
+              <div>3. لو لم يجد، يطلب من Gemini AI ردّاً مخصّصاً (يستخدم بيانات متجرك)</div>
+            </div>
+          )}
+
+          {/* CTA: customize from /business */}
+          <Link href="/business" style={{ textDecoration: 'none' }}>
+            <div style={{
+              padding: '18px',
+              background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(236,72,153,0.1))',
+              border: '1px solid rgba(124,58,237,0.4)',
+              borderRadius: '14px',
+              cursor: 'pointer',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(124,58,237,0.2)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#A78BFA', marginBottom: '4px' }}>🎯 خصّص ردود البوت من ملفك التجاري</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>أضف اسم متجرك، خدماتك، أسعارك، وطريقة الردّ على العملاء</div>
+                </div>
+                <div style={{ fontSize: '20px', color: '#A78BFA' }}>←</div>
+              </div>
+            </div>
+          </Link>
+
+          <button onClick={handleSave} disabled={saving} className="btn-primary" style={{ justifyContent: 'center' }}>{saving ? 'جاري الحفظ...' : '💾 حفظ'}</button>
         </div>
       </div>
     </div>
@@ -384,9 +418,12 @@ export default function DevicesPage() {
 
   const fetchDevices = async () => {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoading(false); return }
     const { data } = await supabase
       .from('devices')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
     setDevices(data || [])
     setLoading(false)

@@ -40,9 +40,10 @@ const bottomItems = [
 
 interface SidebarProps {
   onCollapse?: (collapsed: boolean) => void
+  mobileOpen?: boolean
 }
 
-export function Sidebar({ onCollapse }: SidebarProps) {
+export function Sidebar({ onCollapse, mobileOpen = false }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -60,7 +61,7 @@ export function Sidebar({ onCollapse }: SidebarProps) {
 
   return (
     <aside
-      className="sidebar"
+      className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}
       style={{ width: collapsed ? '70px' : 'var(--sidebar-width)' }}
     >
       {/* Logo */}

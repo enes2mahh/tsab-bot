@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { Menu, X } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { ImpersonateBanner } from '@/components/layout/ImpersonateBanner'
@@ -29,9 +30,13 @@ const pageTitles: Record<string, string> = {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(null)
 
   const title = pageTitles[pathname] || 'لوحة التحكم'
+
+  // Close mobile drawer on route change
+  useEffect(() => { setMobileOpen(false) }, [pathname])
 
   useEffect(() => {
     const supabase = createClient()
@@ -52,7 +57,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <ImpersonateBanner />
-      <Sidebar onCollapse={setCollapsed} />
+
+      {/* Mobile toggle button */}
+      <button onClick={() => setMobileOpen(!mobileOpen)} className="dashboard-mobile-toggle" aria-label="القائمة">
+        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      {/* Mobile overlay backdrop */}
+      <div className={`mobile-overlay ${mobileOpen ? 'active' : ''}`} onClick={() => setMobileOpen(false)} />
+
+      {/* Sidebar — receives mobileOpen for drawer behavior */}
+      <div className={mobileOpen ? 'mobile-open-wrapper' : ''}>
+        <Sidebar onCollapse={setCollapsed} mobileOpen={mobileOpen} />
+      </div>
+
       <div
         className="main-content"
         style={{
