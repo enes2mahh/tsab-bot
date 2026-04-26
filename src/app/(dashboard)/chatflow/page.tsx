@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Save, Play, ArrowLeft, Trash2, Zap, MessageSquare, HelpCircle, GitBranch, Bot, Clock, X } from 'lucide-react'
+import { Plus, Save, Play, ArrowLeft, Trash2, Zap, MessageSquare, HelpCircle, GitBranch, Bot, Clock, X, ToggleLeft, ToggleRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
@@ -48,6 +48,7 @@ export default function ChatFlowPage() {
   const [flowKeyword, setFlowKeyword] = useState('')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [flowActive, setFlowActive] = useState(true)
 
   useEffect(() => {
     const supabase = createClient()
@@ -98,15 +99,22 @@ export default function ChatFlowPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    if (selectedFlow) {
-      await supabase.from('chat_flows').update({ name: flowName, nodes, trigger_keyword: flowKeyword }).eq('id', selectedFlow.id)
+    if (selectedFlow && selectedFlow !== 'new') {
+      await supabase.from('chat_flows').update({ name: flowName, nodes, trigger_keyword: flowKeyword, is_active: flowActive, device_id: flowDevice }).eq('id', selectedFlow.id)
     } else {
-      const { data } = await supabase.from('chat_flows').insert({ name: flowName, device_id: flowDevice, trigger_keyword: flowKeyword, nodes, edges: [], user_id: user.id }).select().single()
+      const { data } = await supabase.from('chat_flows').insert({ name: flowName, device_id: flowDevice || null, trigger_keyword: flowKeyword, nodes, edges: [], user_id: user.id, is_active: flowActive }).select().single()
       setSelectedFlow(data)
     }
     const { data: newFlows } = await supabase.from('chat_flows').select('*').order('created_at', { ascending: false })
     setFlows(newFlows || [])
     setSaving(false)
+  }
+
+  const deleteFlow = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm('حذف هذا التدفق؟')) return
+    await createClient().from('chat_flows').delete().eq('id', id)
+    setFlows(prev => prev.filter(f => f.id !== id))
   }
 
   const deleteNode = (id: string) => {
@@ -123,10 +131,14 @@ export default function ChatFlowPage() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
           {flows.map(f => (
-            <div key={f.id} onClick={() => { setSelectedFlow(f); setNodes(f.nodes || initialNodes); setFlowName(f.name); setFlowKeyword(f.trigger_keyword || '') }} className="card" style={{ cursor: 'pointer' }}>
+            <div key={f.id} onClick={() => { setSelectedFlow(f); setNodes(f.nodes || initialNodes); setFlowName(f.name); setFlowKeyword(f.trigger_keyword || ''); setFlowDevice(f.device_id || ''); setFlowActive(f.is_active ?? true) }} className="card" style={{ cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(124,58,237,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><GitBranch size={18} color="#A78BFA" /></div>
-                <div><div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{f.name}</div><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>كلمة: {f.trigger_keyword || '—'}</div></div>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(124,58,237,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><GitBranch size={18} color="#A78BFA" /></div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>كلمة: {f.trigger_keyword || '—'}</div>
+                </div>
+                <button onClick={(e) => deleteFlow(f.id, e)} style={{ padding: '6px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '8px', cursor: 'pointer', color: '#EF4444', flexShrink: 0 }}><Trash2 size={13} /></button>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)' }}>
                 <span>{f.nodes?.length || 0} عقدة</span>
@@ -152,8 +164,16 @@ export default function ChatFlowPage() {
         <button onClick={() => setSelectedFlow(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
           <ArrowLeft size={16} /> رجوع
         </button>
-        <input className="input-cosmic" value={flowName} onChange={e => setFlowName(e.target.value)} style={{ width: '180px', padding: '8px 12px', fontSize: '14px' }} placeholder="اسم التدفق" />
-        <input className="input-cosmic" value={flowKeyword} onChange={e => setFlowKeyword(e.target.value)} style={{ width: '140px', padding: '8px 12px', fontSize: '14px' }} placeholder="كلمة التشغيل" />
+        <input className="input-cosmic" value={flowName} onChange={e => setFlowName(e.target.value)} style={{ width: '160px', padding: '8px 12px', fontSize: '14px' }} placeholder="اسم التدفق" />
+        <input className="input-cosmic" value={flowKeyword} onChange={e => setFlowKeyword(e.target.value)} style={{ width: '130px', padding: '8px 12px', fontSize: '14px' }} placeholder="كلمة التشغيل" />
+        <select className="input-cosmic" value={flowDevice} onChange={e => setFlowDevice(e.target.value)} style={{ width: '140px', padding: '8px 12px', fontSize: '13px' }}>
+          <option value="">كل الأجهزة</option>
+          {devices.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
+        <button onClick={() => setFlowActive(a => !a)} style={{ padding: '7px 12px', borderRadius: '8px', border: `1px solid ${flowActive ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'}`, background: flowActive ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: flowActive ? '#10B981' : '#EF4444', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+          {flowActive ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
+          {flowActive ? 'مفعّل' : 'معطّل'}
+        </button>
         <div style={{ marginRight: 'auto', display: 'flex', gap: '8px' }}>
           {Object.entries(nodeTypeConfig).filter(([t]) => t !== 'start').map(([type, cfg]) => (
             <button key={type} onClick={() => addNode(type as FlowNode['type'])} style={{ padding: '6px 10px', borderRadius: '8px', border: `1px solid ${cfg.color}40`, background: cfg.bg, color: cfg.color, cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>

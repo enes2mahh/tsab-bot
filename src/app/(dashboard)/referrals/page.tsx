@@ -77,7 +77,7 @@ export default function ReferralsPage() {
       </div>
 
       {/* Earnings Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '28px' }}>
+      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '28px' }}>
         {[
           { label: 'أرباح متاحة للسحب', value: data.earnings.available, color: '#10B981', icon: <DollarSign size={18} /> },
           { label: 'أرباح قيد الانتظار', value: data.earnings.pending, color: '#F59E0B', icon: <Clock size={18} /> },
@@ -93,7 +93,7 @@ export default function ReferralsPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
+      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
         {/* Referral Link */}
         <div className="card">
           <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>رابط الإحالة</h3>
@@ -157,6 +157,7 @@ export default function ReferralsPage() {
             <p>لا توجد إحالات بعد. شارك رابطك لتبدأ الكسب!</p>
           </div>
         ) : (
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead><tr><th>المستخدم</th><th>تاريخ الانضمام</th><th>العمولة</th><th>الحالة</th></tr></thead>
             <tbody>
@@ -170,6 +171,7 @@ export default function ReferralsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -184,6 +186,7 @@ export default function ReferralsPage() {
             <p>لا توجد عمليات سحب بعد</p>
           </div>
         ) : (
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead><tr><th>المبلغ</th><th>البنك</th><th>الحالة</th><th>التاريخ</th></tr></thead>
             <tbody>
@@ -201,6 +204,7 @@ export default function ReferralsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

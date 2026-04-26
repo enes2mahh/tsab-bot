@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Flame, Play, Pause, Settings, Smartphone, MessageSquare, Calendar, Clock, TrendingUp, AlertCircle } from 'lucide-react'
+import { Flame, Play, Pause, Settings, Smartphone, MessageSquare, Calendar, Clock, TrendingUp, AlertCircle, History } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface WarmerConfig {
@@ -30,15 +30,18 @@ export default function WarmerPage() {
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [sessions, setSessions] = useState<any[]>([])
 
   useEffect(() => {
     const supabase = createClient()
     Promise.all([
       supabase.from('devices').select('id, name, phone, status'),
       supabase.from('warmer_config').select('*').limit(1).single(),
-    ]).then(([d, w]) => {
+      supabase.from('warmer_sessions').select('*').order('created_at', { ascending: false }).limit(50),
+    ]).then(([d, w, s]) => {
       setDevices(d.data || [])
       if (w.data) setConfig(prev => ({ ...prev, ...w.data }))
+      setSessions(s.data || [])
       setLoading(false)
     })
   }, [])
@@ -106,7 +109,7 @@ export default function WarmerPage() {
       )}
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
         {[
           { label: 'رسائل اليوم', value: config.messages_today, color: '#10B981', icon: <MessageSquare size={18} /> },
           { label: 'إجمالي الرسائل', value: config.total_messages, color: '#7C3AED', icon: <TrendingUp size={18} /> },
@@ -134,7 +137,7 @@ export default function WarmerPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* Device Selection */}
         <div className="card">
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -188,6 +191,36 @@ export default function WarmerPage() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Sessions Log */}
+      <div className="card" style={{ marginTop: '20px', padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <History size={16} color="var(--text-muted)" />
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>آخر 50 رسالة تدفئة</span>
+        </div>
+        {sessions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)', fontSize: '13px' }}>
+            لا توجد جلسات بعد. شغّل الـ Warmer لتبدأ.
+          </div>
+        ) : (
+          <div className="responsive-table-wrap">
+            <table className="table-cosmic">
+              <thead><tr><th>من</th><th>إلى</th><th>الرسالة</th><th>الحالة</th><th>الوقت</th></tr></thead>
+              <tbody>
+                {sessions.map((s: any) => (
+                  <tr key={s.id}>
+                    <td style={{ fontSize: '12px', direction: 'ltr' }}>{s.from_device_id ? devices.find(d => d.id === s.from_device_id)?.name || s.from_device_id : '—'}</td>
+                    <td style={{ fontSize: '12px', direction: 'ltr' }}>{s.to_device_id ? devices.find(d => d.id === s.to_device_id)?.name || s.to_device_id : '—'}</td>
+                    <td style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.message || '—'}</td>
+                    <td><span className={`badge badge-${s.status === 'sent' ? 'emerald' : s.status === 'failed' ? 'red' : 'yellow'}`}>{s.status === 'sent' ? 'تم' : s.status === 'failed' ? 'فشل' : 'معلق'}</span></td>
+                    <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{new Date(s.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )
