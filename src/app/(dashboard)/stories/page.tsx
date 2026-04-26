@@ -206,7 +206,7 @@ export default function StoriesPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>ستوريز واتساب</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{stories.length} ستوري — {filtered.filter(s => s.status === 'pending').length} في الانتظار</p>

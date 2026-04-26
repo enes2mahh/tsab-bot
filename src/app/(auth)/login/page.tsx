@@ -95,7 +95,7 @@ export default function LoginPage() {
 
         {/* Card */}
         <div
-          className="glass"
+          className="glass auth-card"
           style={{ borderRadius: '20px', padding: '32px' }}
         >
           <form onSubmit={handleLogin}>

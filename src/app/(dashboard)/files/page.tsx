@@ -98,7 +98,7 @@ export default function FilesPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header" style={{ alignItems: 'flex-start' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>مدير الملفات</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{files.length} ملف</p>

@@ -178,7 +178,7 @@ function RegisterForm() {
           </p>
         </div>
 
-        <div className="glass" style={{ borderRadius: '20px', padding: '32px' }}>
+        <div className="glass auth-card" style={{ borderRadius: '20px', padding: '32px' }}>
           {step === 'success' ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <CheckCircle size={56} color="#10B981" style={{ marginBottom: '16px' }} />

@@ -119,7 +119,7 @@ export default function BusinessProfilePage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>الملف التجاري</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>هذه المعلومات تُغذّي الذكاء الاصطناعي ليرد على عملائك بدقّة</p>
@@ -145,7 +145,7 @@ export default function BusinessProfilePage() {
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Store size={16} /> معلومات المتجر
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="grid-2" style={{ gap: '14px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>اسم المتجر/النشاط *</label>
               <input className="input-cosmic" value={form.business_name} onChange={(e) => update('business_name', e.target.value)} placeholder="متجر النور" />

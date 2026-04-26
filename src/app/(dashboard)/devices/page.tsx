@@ -122,8 +122,8 @@ function QRModal({ deviceId, onClose, onConnected }: { deviceId: string; onClose
           <div style={{ padding: '40px 0' }}>
             <div
               style={{
-                width: '256px',
-                height: '256px',
+                width: 'min(256px, calc(100vw - 100px))',
+                height: 'min(256px, calc(100vw - 100px))',
                 margin: '0 auto 16px',
                 background: 'var(--bg-card)',
                 borderRadius: '12px',
@@ -149,8 +149,8 @@ function QRModal({ deviceId, onClose, onConnected }: { deviceId: string; onClose
           <>
             <div
               style={{
-                width: '256px',
-                height: '256px',
+                width: 'min(256px, calc(100vw - 100px))',
+                height: 'min(256px, calc(100vw - 100px))',
                 margin: '0 auto 16px',
                 background: 'white',
                 borderRadius: '12px',
@@ -493,7 +493,7 @@ export default function DevicesPage() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
             أجهزة الواتساب

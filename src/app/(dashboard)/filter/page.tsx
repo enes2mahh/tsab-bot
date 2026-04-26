@@ -44,7 +44,7 @@ export default function FilterPage() {
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>تنظيف وتنسيق أرقام الهاتف</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div className="grid-2" style={{ gap: '20px' }}>
         <div className="card">
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>الأرقام المُدخلة</h3>
           <textarea

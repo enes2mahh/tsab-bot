@@ -98,7 +98,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>إعدادات النظام</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>يظهر تأثير معظم الإعدادات فوراً على الموقع</p>

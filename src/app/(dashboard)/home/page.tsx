@@ -247,7 +247,7 @@ export default function HomePage() {
       </div>
 
       {/* Tables */}
-      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div className="grid-2">
         {/* Recent Messages */}
         <div className="card" style={{ padding: '20px' }}>
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>

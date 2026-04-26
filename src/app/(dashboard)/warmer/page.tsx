@@ -88,7 +88,7 @@ export default function WarmerPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Flame size={22} color="#F59E0B" /> WA Warmer
@@ -109,7 +109,7 @@ export default function WarmerPage() {
       )}
 
       {/* Stats */}
-      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div className="grid-4" style={{ marginBottom: '24px' }}>
         {[
           { label: 'رسائل اليوم', value: config.messages_today, color: '#10B981', icon: <MessageSquare size={18} /> },
           { label: 'إجمالي الرسائل', value: config.total_messages, color: '#7C3AED', icon: <TrendingUp size={18} /> },

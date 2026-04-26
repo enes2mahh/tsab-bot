@@ -167,7 +167,7 @@ export default function AdminPlansPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>إدارة الخطط</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{plans.length} خطة</p>
@@ -204,7 +204,7 @@ export default function AdminPlansPage() {
               <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>ريال / {plan.duration_days} يوم</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+            <div className="grid-2" style={{ gap: '8px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-secondary)' }}>
               <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>📱 {plan.device_limit} جهاز</div>
               <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>💬 {plan.message_limit.toLocaleString('ar')}</div>
               <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>🎁 {plan.trial_days} يوم تجريبي</div>

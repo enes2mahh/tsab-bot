@@ -82,7 +82,7 @@ export default function AdminTicketsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>تذاكر الدعم</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -92,7 +92,7 @@ export default function AdminTicketsPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div className="grid-4" style={{ marginBottom: '20px' }}>
         {[
           { label: 'مفتوحة', value: openCount, color: '#F59E0B', icon: <AlertCircle size={18} /> },
           { label: 'قيد المعالجة', value: progressCount, color: '#7C3AED', icon: <Clock size={18} /> },
@@ -136,6 +136,7 @@ export default function AdminTicketsPage() {
             <p>لا توجد تذاكر</p>
           </div>
         ) : (
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead>
               <tr><th>المستخدم</th><th>الموضوع</th><th>القسم</th><th>الأولوية</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr>
@@ -172,6 +173,7 @@ export default function AdminTicketsPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

@@ -163,7 +163,7 @@ export default function AdminJobsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>إدارة الوظائف</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{jobs.length} وظيفة — {activeCount} نشطة</p>

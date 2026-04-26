@@ -177,7 +177,7 @@ export default function FAQsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>الأسئلة المتكررة (FAQ)</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>الردود الذكية بدون استهلاك tokens</p>
@@ -190,7 +190,7 @@ export default function FAQsPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div className="grid-3" style={{ marginBottom: '20px' }}>
         <div className="stat-card" style={{ borderTopColor: '#7C3AED' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>إجمالي الأسئلة</div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>{faqs.length}</div>

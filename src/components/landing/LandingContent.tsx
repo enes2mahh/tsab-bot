@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import {
   Zap, Bot, Megaphone, Clock, Plug, Pointer, BarChart3,
-  Check, ChevronDown, ChevronUp, Globe
+  Check, ChevronDown, ChevronUp, Globe, Menu, X
 } from 'lucide-react'
 import { useLang, type Lang } from '@/lib/lang'
 
@@ -127,20 +127,23 @@ const faqsData = {
 function Navbar() {
   const { lang, toggleLang } = useLang()
   const t = T[lang]
+  const [menuOpen, setMenuOpen] = useState(false)
+
   return (
-    <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(8,8,18,0.85)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)', padding: '0 24px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', direction: t.dir as any }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(8,8,18,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', direction: t.dir as any, padding: '0 16px' }}>
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={18} color="white" />
           </div>
           <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+        {/* Desktop nav links */}
+        <div className="nav-links-desktop">
           {t.nav.map((item, i) => {
             const id = t.navIds[i]
-            // 'features' and 'pricing' are anchors on this page; 'help' and 'contact' are real pages
             const href = id === 'features' || id === 'pricing' ? `#${id}` : `/${id}`
             const Element = href.startsWith('#') ? 'a' : Link
             return (
@@ -153,18 +156,46 @@ function Navbar() {
           })}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Language toggle */}
-          <button onClick={toggleLang} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px', fontFamily: 'Tajawal, sans-serif', transition: 'all 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent-violet)')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}>
+        {/* Desktop actions + hamburger */}
+        <div className="nav-actions">
+          <button onClick={toggleLang} className="nav-hamburger" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px', fontFamily: 'Tajawal, sans-serif' }}>
             <Globe size={14} />
             {lang === 'ar' ? 'EN' : 'عر'}
           </button>
           <Link href="/login" className="btn-secondary" style={{ padding: '8px 18px', fontSize: '13px', textDecoration: 'none' }}>{t.login}</Link>
           <Link href="/register" className="btn-primary" style={{ padding: '8px 18px', fontSize: '13px', textDecoration: 'none' }}>{t.register}</Link>
+          {/* Hamburger — visible only on mobile via CSS */}
+          <button
+            className="nav-hamburger"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="القائمة"
+            style={{ padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', background: 'rgba(255,255,255,0.06)' }}
+          >
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <div className="nav-menu-mobile" style={{ display: 'flex' }}>
+          {t.nav.map((item, i) => {
+            const id = t.navIds[i]
+            const href = id === 'features' || id === 'pricing' ? `#${id}` : `/${id}`
+            const Element = href.startsWith('#') ? 'a' : Link
+            return (
+              <Element key={item} href={href} onClick={() => setMenuOpen(false)}
+                style={{ padding: '12px 16px', borderRadius: '10px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '15px', fontFamily: 'Tajawal, sans-serif', display: 'block', transition: 'all 0.2s' }}>
+                {item}
+              </Element>
+            )
+          })}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Link href="/login" onClick={() => setMenuOpen(false)} className="btn-secondary" style={{ textAlign: 'center', padding: '12px', fontSize: '15px', textDecoration: 'none' }}>{t.login}</Link>
+            <Link href="/register" onClick={() => setMenuOpen(false)} className="btn-primary" style={{ textAlign: 'center', padding: '12px', fontSize: '15px', textDecoration: 'none', justifyContent: 'center' }}>{t.register}</Link>
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
@@ -174,24 +205,24 @@ function Hero() {
   const { lang } = useLang()
   const t = T[lang]
   return (
-    <section style={{ textAlign: 'center', padding: '100px 24px 80px', position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', direction: t.dir as any }}>
+    <section className="hero-section" style={{ textAlign: 'center', position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', direction: t.dir as any }}>
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 16px', background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '30px', marginBottom: '28px', fontSize: '13px', color: '#A78BFA' }}>
         <Zap size={13} /> {t.badge}
       </div>
-      <h1 style={{ fontSize: 'clamp(36px, 6vw, 64px)', fontWeight: 900, lineHeight: 1.2, marginBottom: '20px', color: 'var(--text-primary)' }}>
+      <h1 style={{ fontSize: 'clamp(28px, 6vw, 64px)', fontWeight: 900, lineHeight: 1.2, marginBottom: '20px', color: 'var(--text-primary)' }}>
         {t.heroTitle1}<span className="gradient-text">{t.heroTitle2}</span>
       </h1>
-      <p style={{ fontSize: '18px', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 40px', lineHeight: 1.7 }}>{t.heroDesc}</p>
-      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <Link href="/register" className="btn-primary" style={{ padding: '14px 32px', fontSize: '16px', textDecoration: 'none' }}>
+      <p style={{ fontSize: 'clamp(15px, 2.5vw, 18px)', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 36px', lineHeight: 1.7 }}>{t.heroDesc}</p>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', padding: '0 8px' }}>
+        <Link href="/register" className="btn-primary" style={{ padding: '13px 28px', fontSize: '15px', textDecoration: 'none' }}>
           <Zap size={18} /> {t.heroCTA}
         </Link>
-        <a href="#features" className="btn-secondary" style={{ padding: '14px 32px', fontSize: '16px', textDecoration: 'none' }}>{t.heroSub}</a>
+        <a href="#features" className="btn-secondary" style={{ padding: '13px 28px', fontSize: '15px', textDecoration: 'none' }}>{t.heroSub}</a>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '48px', marginTop: '60px', flexWrap: 'wrap' }}>
+      <div className="stats-row" style={{ marginTop: '52px' }}>
         {t.stats.map(stat => (
           <div key={stat.label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{stat.value}</div>
+            <div style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{stat.value}</div>
             <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{stat.label}</div>
           </div>
         ))}
@@ -206,20 +237,20 @@ function Features() {
   const t = T[lang]
   const features = featuresData[lang]
   return (
-    <section id="features" style={{ padding: '80px 24px', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1, direction: t.dir as any }}>
-      <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.featuresTitle}</h2>
+    <section id="features" className="landing-section" style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1, direction: t.dir as any }}>
+      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.featuresTitle}</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>{t.featuresDesc}</p>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
         {features.map(f => (
-          <div key={f.title} className="glass gradient-border" style={{ padding: '28px', borderRadius: '16px', transition: 'transform 0.3s' }}
+          <div key={f.title} className="glass gradient-border" style={{ padding: '24px', borderRadius: '16px', transition: 'transform 0.3s' }}
             onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-4px)')}
             onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${f.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: f.color, marginBottom: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${f.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: f.color, marginBottom: '14px' }}>
               {f.icon}
             </div>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>{f.title}</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>{f.title}</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{f.desc}</p>
           </div>
         ))}
@@ -234,14 +265,14 @@ function Pricing() {
   const t = T[lang]
   const plans = plansData[lang]
   return (
-    <section id="pricing" style={{ padding: '80px 24px', maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1, direction: t.dir as any }}>
-      <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.pricingTitle}</h2>
+    <section id="pricing" className="landing-section" style={{ maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1, direction: t.dir as any }}>
+      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.pricingTitle}</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>{t.pricingDesc}</p>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
         {plans.map(plan => (
-          <div key={plan.name} style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '28px', border: plan.recommended ? `2px solid ${plan.color}` : '1px solid var(--border)', position: 'relative', transition: 'transform 0.3s' }}
+          <div key={plan.name} style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '24px', border: plan.recommended ? `2px solid ${plan.color}` : '1px solid var(--border)', position: 'relative', transition: 'transform 0.3s' }}
             onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-6px)')}
             onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
             {plan.recommended && (
@@ -252,7 +283,7 @@ function Pricing() {
             <div style={{ marginBottom: '20px' }}>
               <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>{plan.name}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <span style={{ fontSize: '40px', fontWeight: 900, color: plan.color }}>{plan.price}</span>
+                <span style={{ fontSize: '38px', fontWeight: 900, color: plan.color }}>{plan.price}</span>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t.month}</span>
               </div>
               {plan.trial > 0 && <div style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>🎁 {plan.trial} {t.freeTrialDays}</div>}
@@ -285,18 +316,18 @@ function FAQ() {
   const faqs = faqsData[lang]
   const [open, setOpen] = useState<number | null>(null)
   return (
-    <section style={{ padding: '80px 24px', maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1, direction: t.dir as any }}>
-      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-        <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.faqTitle}</h2>
+    <section className="landing-section" style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1, direction: t.dir as any }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.faqTitle}</h2>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {faqs.map((faq, i) => (
           <div key={i} style={{ background: 'var(--bg-card)', border: `1px solid ${open === i ? 'var(--accent-violet)' : 'var(--border)'}`, borderRadius: '14px', overflow: 'hidden', transition: 'border-color 0.2s' }}>
-            <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontFamily: 'Tajawal, sans-serif', fontSize: '15px', fontWeight: 600, textAlign: lang === 'ar' ? 'right' : 'left' }}>
-              {faq.q}
-              {open === i ? <ChevronUp size={16} color="var(--accent-violet-light)" /> : <ChevronDown size={16} color="var(--text-muted)" />}
+            <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '16px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontFamily: 'Tajawal, sans-serif', fontSize: '15px', fontWeight: 600, textAlign: lang === 'ar' ? 'right' : 'left', gap: '12px' }}>
+              <span style={{ flex: 1 }}>{faq.q}</span>
+              {open === i ? <ChevronUp size={16} color="var(--accent-violet-light)" style={{ flexShrink: 0 }} /> : <ChevronDown size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />}
             </button>
-            {open === i && <div style={{ padding: '0 20px 18px', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{faq.a}</div>}
+            {open === i && <div style={{ padding: '0 18px 16px', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{faq.a}</div>}
           </div>
         ))}
       </div>
@@ -309,13 +340,15 @@ function CTASection() {
   const { lang } = useLang()
   const t = T[lang]
   return (
-    <section style={{ padding: '80px 24px', position: 'relative', zIndex: 1, textAlign: 'center', direction: t.dir as any }}>
-      <div style={{ maxWidth: '700px', margin: '0 auto', padding: '60px 40px', background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(16,185,129,0.1))', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '24px' }}>
-        <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px' }}>{t.ctaTitle}</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginBottom: '32px', lineHeight: 1.6 }}>{t.ctaDesc}</p>
-        <Link href="/register" className="btn-primary" style={{ padding: '16px 40px', fontSize: '17px', textDecoration: 'none', display: 'inline-flex' }}>
-          <Zap size={20} /> {t.ctaBtn}
-        </Link>
+    <section className="landing-section" style={{ position: 'relative', zIndex: 1, textAlign: 'center', direction: t.dir as any }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }} className="cta-box" >
+        <div style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(16,185,129,0.1))', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '24px', padding: 'inherit' }}>
+          <h2 style={{ fontSize: 'clamp(22px, 4vw, 36px)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px' }}>{t.ctaTitle}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginBottom: '28px', lineHeight: 1.6 }}>{t.ctaDesc}</p>
+          <Link href="/register" className="btn-primary" style={{ padding: '14px 36px', fontSize: '16px', textDecoration: 'none', display: 'inline-flex' }}>
+            <Zap size={20} /> {t.ctaBtn}
+          </Link>
+        </div>
       </div>
     </section>
   )
@@ -326,37 +359,39 @@ function Footer() {
   const { lang } = useLang()
   const t = T[lang]
   return (
-    <footer style={{ borderTop: '1px solid var(--border)', padding: '48px 24px 32px', position: 'relative', zIndex: 1, direction: t.dir as any }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '40px', marginBottom: '40px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={16} color="white" />
+    <footer style={{ borderTop: '1px solid var(--border)', padding: '48px 16px 28px', position: 'relative', zIndex: 1, direction: t.dir as any }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div className="footer-grid" style={{ marginBottom: '36px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Zap size={16} color="white" />
+              </div>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
             </div>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '260px' }}>{t.footerDesc}</p>
           </div>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '260px' }}>{t.footerDesc}</p>
+          {t.footerCols.map(col => (
+            <div key={col.title}>
+              <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px' }}>{col.title}</h4>
+              <ul style={{ listStyle: 'none' }}>
+                {col.links.map(link => (
+                  <li key={link.label} style={{ marginBottom: '10px' }}>
+                    <Link href={link.href} style={{ fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-violet-light)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
-        {t.footerCols.map(col => (
-          <div key={col.title}>
-            <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>{col.title}</h4>
-            <ul style={{ listStyle: 'none' }}>
-              {col.links.map(link => (
-                <li key={link.label} style={{ marginBottom: '10px' }}>
-                  <Link href={link.href} style={{ fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-violet-light)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
-        <span>{t.footerCopy}</span>
-        <span>{t.footerSub}</span>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <span>{t.footerCopy}</span>
+          <span>{t.footerSub}</span>
+        </div>
       </div>
     </footer>
   )

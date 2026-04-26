@@ -91,7 +91,7 @@ export default function AboutPage() {
         </div>
 
         {/* Mission + Vision */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px' }}>
+        <div className="grid-2" style={{ marginBottom: '40px' }}>
           <div className="glass" style={{ padding: '28px', borderRadius: '16px' }}>
             <Target size={32} color="#7C3AED" style={{ marginBottom: '16px' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }}>{t.missionTitle}</h3>

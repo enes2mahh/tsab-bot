@@ -68,7 +68,7 @@ export default function AdminReferralsPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
+      <div className="grid-3" style={{ marginBottom: '20px' }}>
         {[
           { label: 'طلبات معلقة', value: pending.length, color: '#F59E0B' },
           { label: 'طلبات مكتملة', value: completed.length, color: '#10B981' },
@@ -100,6 +100,7 @@ export default function AdminReferralsPage() {
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="responsive-table-wrap">
         <table className="table-cosmic">
           <thead>
             <tr><th>المستخدم</th><th>المبلغ</th><th>البنك / IBAN</th><th>التاريخ</th><th>الحالة</th><th>الإجراءات</th></tr>
@@ -139,6 +140,7 @@ export default function AdminReferralsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {selected && (

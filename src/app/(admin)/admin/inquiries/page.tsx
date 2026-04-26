@@ -100,7 +100,7 @@ export default function AdminInquiriesPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div className="grid-4" style={{ marginBottom: '20px' }}>
         {[
           { label: 'تواصل جديد', value: counts.contact, color: '#7C3AED', icon: <MessageSquare size={18} /> },
           { label: 'توظيف جديد', value: counts.career, color: '#10B981', icon: <Briefcase size={18} /> },
@@ -143,6 +143,7 @@ export default function AdminInquiriesPage() {
             <p>لا توجد طلبات</p>
           </div>
         ) : (
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead><tr><th>النوع</th><th>المرسل</th><th>الموضوع</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr></thead>
             <tbody>
@@ -173,6 +174,7 @@ export default function AdminInquiriesPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

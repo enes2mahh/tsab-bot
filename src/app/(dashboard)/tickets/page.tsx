@@ -165,7 +165,7 @@ export default function TicketsPage() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>تذاكر الدعم</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{tickets.length} تذكرة — {tickets.filter(t => t.status !== 'closed').length} نشطة</p>

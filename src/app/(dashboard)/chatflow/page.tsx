@@ -125,7 +125,7 @@ export default function ChatFlowPage() {
   if (!selectedFlow && flows.length >= 0 && !loading) {
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="page-flex-header">
           <div><h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>تدفقات المحادثة</h2></div>
           <button onClick={() => { setSelectedFlow('new'); setNodes(initialNodes); setFlowName('تدفق جديد') }} className="btn-primary"><Plus size={16} /> تدفق جديد</button>
         </div>

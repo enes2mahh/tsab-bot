@@ -72,7 +72,7 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>التقارير والتحليلات</h2>
           <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
@@ -88,7 +88,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div className="grid-4" style={{ marginBottom: '24px' }}>
         {[
           { label: 'مرسلة', value: sent, color: '#2563EB', icon: <MessageSquare size={18} /> },
           { label: 'واردة', value: received, color: '#10B981', icon: <MessageSquare size={18} /> },
@@ -106,7 +106,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px' }}>
+      <div className="grid-2" style={{ marginBottom: '24px' }}>
         <div className="card">
           <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>نشاط الرسائل ({period} يوم)</h3>
           <ResponsiveContainer width="100%" height={200}>

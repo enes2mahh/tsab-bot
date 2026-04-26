@@ -139,15 +139,15 @@ export default function PartnersPage() {
             </div>
           ) : (
             <form onSubmit={submit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div className="grid-2" style={{ marginBottom: '14px' }}>
                 <div><label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t.name} *</label><input required className="input-cosmic" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
                 <div><label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t.email} *</label><input required type="email" className="input-cosmic" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div className="grid-2" style={{ marginBottom: '14px' }}>
                 <div><label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t.phone}</label><input className="input-cosmic" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
                 <div><label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t.company} *</label><input required className="input-cosmic" value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} /></div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div className="grid-2" style={{ marginBottom: '14px' }}>
                 <div><label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t.website}</label><input type="url" className="input-cosmic" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} placeholder="https://" /></div>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{t.type} *</label>

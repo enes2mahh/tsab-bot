@@ -261,7 +261,7 @@ export default function SettingsPage() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>الإعدادات</h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {saved && <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10B981', fontSize: '13px', fontWeight: 500 }}><CheckCircle size={15} /> تم الحفظ!</div>}

@@ -103,7 +103,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header" style={{ marginBottom: '28px' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>التحليلات المتقدمة</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>إحصاءات شاملة عن أداء المنصة</p>
@@ -118,7 +118,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div className="grid-3" style={{ marginBottom: '24px' }}>
         <MetricCard label="إجمالي المستخدمين" value={loading ? '...' : metrics.totalUsers.toLocaleString('ar')} sub="منذ الإطلاق" color="#7C3AED" icon={<Users size={18} />} change={12} />
         <MetricCard label="مستخدمون جدد" value={loading ? '...' : metrics.newUsers.toLocaleString('ar')} sub={`آخر ${period === '7d' ? 7 : period === '30d' ? 30 : 90} يوم`} color="#10B981" icon={<TrendingUp size={18} />} change={8} />
         <MetricCard label="أجهزة متصلة" value={loading ? '...' : metrics.activeDevices.toLocaleString('ar')} sub="الآن" color="#2563EB" icon={<Smartphone size={18} />} />
@@ -128,7 +128,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Charts Row 1 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '20px' }}>
+      <div className="grid-2" style={{ marginBottom: '20px' }}>
         <div className="card">
           <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>نمو المستخدمين والرسائل</h3>
           {!loading && (
@@ -176,7 +176,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Charts Row 2 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+      <div className="grid-2" style={{ marginBottom: '20px' }}>
         <div className="card">
           <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>حالة الأجهزة</h3>
           {!loading && deviceStatus.length > 0 ? (

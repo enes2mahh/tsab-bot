@@ -21,21 +21,22 @@ export function Header({ title, userName, userEmail, avatarUrl }: HeaderProps) {
   }
 
   return (
-    <header className="dashboard-header">
+    <header className="dashboard-header" style={{ paddingRight: '64px' }}>
       {/* Title */}
-      <h1 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
+      <h1 style={{ fontSize: 'clamp(15px, 3vw, 18px)', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {title}
       </h1>
 
       {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {/* Search */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        {/* Search — hidden on small mobile */}
         <button
+          className="hide-mobile"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '8px 16px',
+            padding: '8px 14px',
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: '10px',
@@ -48,11 +49,30 @@ export function Header({ title, userName, userEmail, avatarUrl }: HeaderProps) {
           <span>بحث... (Ctrl+K)</span>
         </button>
 
+        {/* Search icon only on mobile */}
+        <button
+          className="show-mobile"
+          style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '10px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Search size={16} />
+        </button>
+
         {/* Notifications */}
         <button
           style={{
-            width: '40px',
-            height: '40px',
+            width: '38px',
+            height: '38px',
             borderRadius: '10px',
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
@@ -64,14 +84,14 @@ export function Header({ title, userName, userEmail, avatarUrl }: HeaderProps) {
             position: 'relative',
           }}
         >
-          <Bell size={18} />
+          <Bell size={17} />
           <span
             style={{
               position: 'absolute',
               top: '8px',
               right: '8px',
-              width: '8px',
-              height: '8px',
+              width: '7px',
+              height: '7px',
               background: '#EF4444',
               borderRadius: '50%',
               border: '2px solid var(--bg-secondary)',
@@ -86,8 +106,8 @@ export function Header({ title, userName, userEmail, avatarUrl }: HeaderProps) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              padding: '6px 12px',
+              gap: '8px',
+              padding: '5px 10px',
               background: 'var(--bg-card)',
               border: '1px solid var(--border)',
               borderRadius: '10px',
@@ -96,25 +116,26 @@ export function Header({ title, userName, userEmail, avatarUrl }: HeaderProps) {
           >
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '30px',
+                height: '30px',
                 borderRadius: '8px',
                 background: 'var(--gradient)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '14px',
+                fontSize: '13px',
                 fontWeight: 700,
                 color: 'white',
+                flexShrink: 0,
               }}
             >
               {userName?.[0]?.toUpperCase() || 'U'}
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <div style={{ textAlign: 'right' }} className="hide-mobile">
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                 {userName || 'المستخدم'}
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 {userEmail || ''}
               </div>
             </div>
@@ -136,7 +157,7 @@ export function Header({ title, userName, userEmail, avatarUrl }: HeaderProps) {
                   border: '1px solid var(--border)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  zIndex: 20,
+                  zIndex: 200,
                   boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
                 }}
               >
@@ -171,6 +192,7 @@ export function Header({ title, userName, userEmail, avatarUrl }: HeaderProps) {
                     color: '#EF4444',
                     fontSize: '14px',
                     cursor: 'pointer',
+                    fontFamily: 'Tajawal, sans-serif',
                     transition: 'background 0.2s',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}

@@ -103,7 +103,7 @@ export default function AdminCodesPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-flex-header">
         <div><h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>أكواد التفعيل</h2><p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{codes.length} كود</p></div>
         <button onClick={() => setShowForm(true)} className="btn-primary"><Plus size={16} /> كود جديد</button>
       </div>

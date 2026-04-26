@@ -101,11 +101,11 @@ export default function ContactPage() {
             </div>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div className="grid-2" style={{ marginBottom: '16px' }}>
                 <Field label={t.name} required value={form.name} onChange={v => setForm({ ...form, name: v })} placeholder={t.placeholders.name} />
                 <Field label={t.email} required type="email" value={form.email} onChange={v => setForm({ ...form, email: v })} placeholder={t.placeholders.email} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div className="grid-2" style={{ marginBottom: '16px' }}>
                 <Field label={t.phone} value={form.phone} onChange={v => setForm({ ...form, phone: v })} placeholder={t.placeholders.phone} />
                 <Field label={t.subject} value={form.subject} onChange={v => setForm({ ...form, subject: v })} placeholder={t.placeholders.subject} />
               </div>

@@ -382,7 +382,7 @@ export default function AdminUsersPage() {
               {details && (
                 <>
                   <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>إحصاءات الاستخدام</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                  <div className="grid-4" style={{ gap: '10px', marginBottom: '20px' }}>
                     <Stat icon={<Smartphone size={14} />} label="أجهزة" value={`${details.devicesConnected}/${details.devices}`} color="#10B981" />
                     <Stat icon={<MessageSquare size={14} />} label="رسائل" value={details.messages.toLocaleString('ar')} color="#2563EB" sub={`+${details.messagesToday} اليوم`} />
                     <Stat icon={<Megaphone size={14} />} label="حملات" value={`${details.campaignsActive}/${details.campaigns}`} color="#F59E0B" />
@@ -399,7 +399,7 @@ export default function AdminUsersPage() {
               <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>الإجراءات</h4>
 
               {/* Quick actions row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+              <div className="grid-2" style={{ gap: '8px', marginBottom: '16px' }}>
                 <button onClick={handleImpersonate} disabled={busy} style={ActionStyle('#A78BFA', 'rgba(124,58,237,0.1)')}>
                   <Eye size={14} /> الدخول كهذا المستخدم
                 </button>
@@ -453,7 +453,7 @@ export default function AdminUsersPage() {
                   <button onClick={handleChangePlan} disabled={busy || !newPlanId} className="btn-primary" style={{ whiteSpace: 'nowrap' }}>تطبيق</button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
+                <div className="grid-2" style={{ gap: '8px', marginTop: '10px' }}>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <input type="number" className="input-cosmic" value={extendDays} onChange={(e) => setExtendDays(+e.target.value)} min={1} placeholder="أيام التمديد" />
                     <button onClick={handleExtend} disabled={busy} className="btn-secondary" style={{ whiteSpace: 'nowrap' }}>تمديد</button>

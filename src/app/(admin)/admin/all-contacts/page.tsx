@@ -119,7 +119,7 @@ export default function AdminAllContactsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>كل جهات الاتصال</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>جهات اتصال جميع المستخدمين عبر المنصة — {contacts.length.toLocaleString('ar')} رقم</p>
@@ -138,7 +138,7 @@ export default function AdminAllContactsPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div className="grid-4" style={{ marginBottom: '20px' }}>
         <div className="stat-card" style={{ borderTopColor: '#7C3AED' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>إجمالي الأرقام</div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>{contacts.length.toLocaleString('ar')}</div>
@@ -193,6 +193,7 @@ export default function AdminAllContactsPage() {
             <p>لا توجد نتائج</p>
           </div>
         ) : (
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead>
               <tr><th>الاسم</th><th>الهاتف</th><th>الدولة</th><th>المالك</th><th>المصدر</th><th>التاريخ</th></tr>
@@ -215,6 +216,7 @@ export default function AdminAllContactsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
         {filtered.length > 500 && (
           <div style={{ padding: '14px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}>

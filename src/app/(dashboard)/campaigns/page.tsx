@@ -108,7 +108,7 @@ function StatsModal({ campaign, onClose }: { campaign: Campaign; onClose: () => 
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+        <div className="grid-2" style={{ gap: '20px', marginBottom: '24px' }}>
           {/* Donut */}
           <div className="card" style={{ padding: '16px' }}>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>توزيع الحالة</div>
@@ -482,7 +482,7 @@ function CampaignBuilder({ onClose, onCreated }: { onClose: () => void; onCreate
 
             {/* Stats cards */}
             {(inputMode === 'manual' || inputMode === 'csv') && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginTop: '12px' }}>
+              <div className="grid-4" style={{ gap: '8px', marginTop: '12px' }}>
                 {[
                   { label: 'إجمالي', value: recipientStats.valid.length + recipientStats.invalid.length + recipientStats.duplicates, color: '#A78BFA' },
                   { label: 'صالح', value: recipientStats.valid.length, color: '#10B981' },
@@ -700,7 +700,7 @@ export default function CampaignsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>الحملات الإعلانية</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{campaigns.length} حملة إجمالاً</p>
