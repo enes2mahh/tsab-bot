@@ -269,7 +269,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 200px) 1fr', gap: '20px' }} className="settings-grid">
+      <div className="settings-grid">
         {/* Sidebar */}
         <div className="card" style={{ padding: '10px', height: 'fit-content' }}>
           {tabs.map(t => (
