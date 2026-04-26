@@ -942,6 +942,26 @@ class WhatsAppService {
     return !!entry?.sock?.user
   }
 
+  async getGroups(deviceId) {
+    const entry = sessions.get(deviceId)
+    if (!entry?.sock) throw new Error('جهاز غير متصل')
+    try {
+      const groupMap = await entry.sock.groupFetchAllParticipating()
+      return Object.values(groupMap).map(g => ({
+        id: g.id,
+        name: g.subject || g.id,
+        participants: (g.participants || []).map(p => ({
+          id: p.id?.replace('@s.whatsapp.net', '').replace('@g.us', '') || p,
+          admin: p.admin || null,
+        })),
+        size: (g.participants || []).length,
+      }))
+    } catch (err) {
+      console.error('[getGroups] error:', err.message)
+      return []
+    }
+  }
+
   // ========== STORIES (status@broadcast) ==========
   // Best-effort posting via Baileys. Unofficial — may break.
   async postStory({ deviceId, type, caption, mediaUrl, textColor, backgroundColor }) {

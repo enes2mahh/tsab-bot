@@ -177,4 +177,19 @@ router.post('/import-contacts', async (req, res) => {
   }
 })
 
+// GET /devices/:id/groups — fetch all groups for a connected device
+router.get('/:id/groups', async (req, res) => {
+  const deviceId = req.params.id
+  try {
+    if (!whatsappService.isConnected(deviceId)) {
+      return res.status(400).json({ error: 'الجهاز غير متصل', groups: [] })
+    }
+    const groups = await whatsappService.getGroups(deviceId)
+    res.json({ success: true, groups })
+  } catch (err) {
+    console.error('[groups] error:', err)
+    res.status(500).json({ error: err.message, groups: [] })
+  }
+})
+
 module.exports = router
