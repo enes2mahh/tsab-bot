@@ -392,9 +392,10 @@ select.input-cosmic {
     padding: 16px !important;
   }
 
-  /* Modals fit screen */
-  .glass {
-    max-height: 92vh !important;
+  /* Modals fit screen — only fixed-position glass (actual modals) */
+  [style*="position: fixed"] .glass,
+  [style*="position:fixed"] .glass {
+    max-height: 92vh;
     overflow-y: auto;
   }
 
