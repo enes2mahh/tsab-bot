@@ -446,7 +446,7 @@ export default function AdminUsersPage() {
               {/* Plan + extend */}
               <div style={SectionStyle()}>
                 <label style={LabelStyle()}>إدارة الاشتراك</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '8px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
                   <select className="input-cosmic" value={newPlanId} onChange={(e) => setNewPlanId(e.target.value)}>
                     <option value="">— اختر خطة جديدة —</option>
                     {plans.map((p) => <option key={p.id} value={p.id}>{p.name_ar} · {p.price} ر.س · {p.message_limit.toLocaleString('ar')} رسالة</option>)}

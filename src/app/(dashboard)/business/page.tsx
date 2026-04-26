@@ -185,7 +185,7 @@ export default function BusinessProfilePage() {
                   <button onClick={() => removeService(i)} style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', color: '#EF4444' }}>
                     <Trash2 size={12} />
                   </button>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '8px' }}>
+                  <div className="grid-2" style={{ marginBottom: '8px' }}>
                     <input className="input-cosmic" value={s.name} onChange={(e) => updateService(i, 'name', e.target.value)} placeholder="اسم الخدمة (مثلاً: 1000 متابع انستجرام)" />
                     <input className="input-cosmic" value={s.price || ''} onChange={(e) => updateService(i, 'price', e.target.value)} placeholder="السعر (مثلاً: 50 ريال)" />
                   </div>
