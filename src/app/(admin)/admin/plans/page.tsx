@@ -107,7 +107,7 @@ function PlanForm({ plan, onClose, onSaved }: { plan?: Plan | null; onClose: () 
         {/* Features */}
         <div style={{ marginTop: '20px' }}>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '12px' }}>الميزات المتاحة</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+          <div className="grid-3" style={{ gap: '8px' }}>
             {Object.entries(FEATURE_LABELS).map(([key, label]) => (
               <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px 12px', borderRadius: '8px', background: form.features[key] ? 'rgba(16,185,129,0.1)' : 'var(--bg-secondary)', border: `1px solid ${form.features[key] ? 'rgba(16,185,129,0.3)' : 'var(--border)'}`, transition: 'all 0.2s' }}>
                 <input type="checkbox" checked={!!form.features[key]} onChange={() => toggleFeature(key)} style={{ accentColor: '#10B981', width: '14px', height: '14px' }} />
