@@ -79,6 +79,34 @@ export function emailSubscriptionExpiring(opts: { name: string; daysLeft: number
   }
 }
 
+export function emailPasswordReset(opts: { resetLink: string }) {
+  return {
+    subject: '🔐 إعادة تعيين كلمة المرور — Tsab Bot',
+    html: `
+      <div dir="rtl" style="font-family:Tajawal,Arial,sans-serif;max-width:560px;margin:auto;background:#0F0F1A;color:#E2E8F0;border-radius:16px;overflow:hidden">
+        <div style="background:linear-gradient(135deg,#7C3AED,#4F46E5);padding:40px;text-align:center">
+          <div style="font-size:48px;margin-bottom:12px">🔐</div>
+          <h1 style="margin:0;font-size:22px;color:#fff">إعادة تعيين كلمة المرور</h1>
+        </div>
+        <div style="padding:32px">
+          <p style="font-size:15px;color:#E2E8F0;line-height:1.8;margin-bottom:8px">تلقّينا طلباً لإعادة تعيين كلمة مرور حسابك في <strong>Tsab Bot</strong>.</p>
+          <p style="font-size:14px;color:#94A3B8;line-height:1.8;margin-bottom:28px">إذا لم تطلب ذلك، يمكنك تجاهل هذا البريد وستبقى كلمة مرورك كما هي.</p>
+          <a href="${opts.resetLink}" style="display:block;text-align:center;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;text-decoration:none;padding:16px;border-radius:12px;font-weight:700;font-size:16px;margin-bottom:20px">
+            تعيين كلمة مرور جديدة ←
+          </a>
+          <p style="font-size:12px;color:#475569;text-align:center;line-height:1.8">
+            أو انسخ هذا الرابط في المتصفح:<br>
+            <span style="color:#7C3AED;word-break:break-all">${opts.resetLink}</span>
+          </p>
+          <div style="margin-top:24px;padding:16px;background:#1E1E2E;border-radius:12px;border-right:4px solid #F59E0B">
+            <p style="margin:0;font-size:13px;color:#F59E0B">⏰ صلاحية الرابط: ساعة واحدة فقط</p>
+          </div>
+        </div>
+        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Tsab Bot — منصة التسويق عبر واتساب</div>
+      </div>`,
+  }
+}
+
 export function emailWelcome(opts: { name: string }) {
   return {
     subject: '🎉 أهلاً بك في Tsab Bot!',
