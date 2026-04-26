@@ -148,9 +148,9 @@ export default function MessengerPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          deviceId: selectedContact.deviceId,
+          device_id: selectedContact.deviceId,
           phone: selectedContact.phone,
-          text: draftText.trim(),
+          content: draftText.trim(),
         }),
       })
       if (r.ok) {

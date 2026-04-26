@@ -10,6 +10,13 @@ interface Contact {
   tags: string[]; notes: string | null; is_blocked: boolean; created_at: string
 }
 
+function normalizePhone(raw: string): string {
+  let phone = raw.replace(/\D/g, '')
+  if (phone.startsWith('00')) phone = phone.slice(2)
+  if (phone.startsWith('0') && phone.length <= 10) phone = '966' + phone.slice(1)
+  return phone
+}
+
 function ContactForm({ onClose, onSaved, existing }: any) {
   const [form, setForm] = useState({ phone: existing?.phone || '', name: existing?.name || '', email: existing?.email || '', tags: (existing?.tags || []).join(', '), notes: existing?.notes || '' })
   const [loading, setLoading] = useState(false)
@@ -97,20 +104,22 @@ export default function ContactsPage() {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'contacts.csv'; a.click()
   }
 
-  const importFromWhatsApp = async () => {
+  const pickDevice = async () => {
     const supabase = createClient()
     const { data: devices } = await supabase.from('devices').select('id, name, status').eq('status', 'connected')
     if (!devices?.length) {
       alert('⚠️ ما في جهاز متصل. اربط جهاز أولاً من صفحة الأجهزة.')
-      return
+      return null
     }
-    const deviceId = devices.length === 1 ? devices[0].id : prompt(`اختر جهازاً:\n${devices.map((d: any, i: number) => `${i + 1}. ${d.name}`).join('\n')}\n\nأدخل الرقم:`)?.trim()
-      .split('').map(Number)[0]
-    let target: any
-    if (devices.length === 1) target = devices[0]
-    else if (deviceId !== undefined && devices[deviceId - 1]) target = devices[deviceId - 1]
-    else return
+    if (devices.length === 1) return devices[0]
+    const choice = prompt(`اختر جهازاً:\n${devices.map((d: any, i: number) => `${i + 1}. ${d.name}`).join('\n')}\n\nأدخل الرقم:`)?.trim()
+    const idx = parseInt(choice || '') - 1
+    return devices[idx] ?? null
+  }
 
+  const importFromWhatsApp = async () => {
+    const target = await pickDevice()
+    if (!target) return
     const r = await fetch('/api/contacts/import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -122,6 +131,23 @@ export default function ContactsPage() {
       fetchContacts()
     } else {
       alert(data.error || 'فشل الاستيراد')
+    }
+  }
+
+  const importFromPhonebook = async () => {
+    const target = await pickDevice()
+    if (!target) return
+    const r = await fetch('/api/contacts/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId: target.id, source: 'phonebook' }),
+    })
+    const data = await r.json()
+    if (data.success) {
+      alert(`✅ تم استيراد ${data.imported} جهة اتصال من دليل الهاتف (المجموع: ${data.total || 0})`)
+      fetchContacts()
+    } else {
+      alert(data.error || 'فشل استيراد دليل الهاتف')
     }
   }
 
@@ -160,7 +186,7 @@ export default function ContactsPage() {
       if (!user) return
       const toInsert = dataLines.filter(l => l).map(l => {
         const cols = l.split(',').map((c: string) => c.replace(/['"]/g, '').trim())
-        const phone = cols[phoneIdx]?.replace(/\D/g, '') || ''
+        const phone = normalizePhone(cols[phoneIdx] || '')
         const name = cols[nameIdx] || null
         const email = emailIdx >= 0 && cols[emailIdx] ? cols[emailIdx] : null
         const tags = tagsIdx >= 0 && cols[tagsIdx] ? cols[tagsIdx].split(';').map((t: string) => t.trim()).filter(Boolean) : []
@@ -183,7 +209,10 @@ export default function ContactsPage() {
         <div><h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>دليل الهاتف</h2><p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{contacts.length} جهة اتصال</p></div>
         <div className="stack-mobile" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button onClick={importFromWhatsApp} className="btn-secondary" style={{ background: 'rgba(37,211,102,0.1)', borderColor: 'rgba(37,211,102,0.3)', color: '#25D366' }}>
-            <MessageCircle size={15} /> استيراد من واتساب
+            <MessageCircle size={15} /> استيراد المحادثات
+          </button>
+          <button onClick={importFromPhonebook} className="btn-secondary" style={{ background: 'rgba(37,211,102,0.1)', borderColor: 'rgba(37,211,102,0.3)', color: '#25D366' }}>
+            <Phone size={15} /> استيراد دليل الهاتف
           </button>
           <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Import size={15} /> استيراد CSV
