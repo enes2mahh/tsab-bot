@@ -125,20 +125,50 @@ export default function ContactsPage() {
     }
   }
 
+  const downloadTemplate = () => {
+    const csv = 'Name,Phone,Email,Tags,Notes\nمحمد أحمد,966501234567,example@email.com,عملاء VIP,ملاحظة اختبار'
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'contacts-template.csv'; a.click()
+  }
+
   const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
     reader.onload = async (ev) => {
-      const lines = (ev.target?.result as string).split('\n').slice(1)
+      const allLines = (ev.target?.result as string).split('\n').map(l => l.trim()).filter(l => l)
+      if (!allLines.length) return
+      // Detect headers: if first row has non-numeric values in phone-like column
+      const headerRow = allLines[0].toLowerCase()
+      const hasHeaders = headerRow.includes('name') || headerRow.includes('phone') || headerRow.includes('اسم') || headerRow.includes('هاتف')
+      const dataLines = hasHeaders ? allLines.slice(1) : allLines
+
+      // Detect column order from header (Name, Phone, Email, Tags)
+      let nameIdx = 0, phoneIdx = 1, emailIdx = 2, tagsIdx = 3
+      if (hasHeaders) {
+        const cols = headerRow.split(',').map((c: string) => c.trim())
+        nameIdx = cols.findIndex((c: string) => c.includes('name') || c.includes('اسم') || c.includes('الاسم'))
+        phoneIdx = cols.findIndex((c: string) => c.includes('phone') || c.includes('هاتف') || c.includes('رقم'))
+        emailIdx = cols.findIndex((c: string) => c.includes('email') || c.includes('بريد'))
+        tagsIdx = cols.findIndex((c: string) => c.includes('tag') || c.includes('تصنيف'))
+        if (phoneIdx === -1) phoneIdx = 1
+        if (nameIdx === -1) nameIdx = 0
+      }
+
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const toInsert = lines.filter(l => l.trim()).map(l => {
-        const [name, phone] = l.split(',')
-        return { user_id: user.id, phone: phone?.trim() || '', name: name?.trim() || null }
-      }).filter(c => c.phone)
+      const toInsert = dataLines.filter(l => l).map(l => {
+        const cols = l.split(',').map((c: string) => c.replace(/['"]/g, '').trim())
+        const phone = cols[phoneIdx]?.replace(/\D/g, '') || ''
+        const name = cols[nameIdx] || null
+        const email = emailIdx >= 0 && cols[emailIdx] ? cols[emailIdx] : null
+        const tags = tagsIdx >= 0 && cols[tagsIdx] ? cols[tagsIdx].split(';').map((t: string) => t.trim()).filter(Boolean) : []
+        return { user_id: user.id, phone, name, email, tags }
+      }).filter(c => c.phone && c.phone.length >= 8)
+
       if (toInsert.length) { await supabase.from('contacts').upsert(toInsert, { onConflict: 'user_id,phone' }); fetchContacts() }
+      alert(`✅ تم استيراد ${toInsert.length} جهة اتصال`)
     }
     reader.readAsText(file)
   }
@@ -157,8 +187,11 @@ export default function ContactsPage() {
           </button>
           <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Import size={15} /> استيراد CSV
-            <input type="file" hidden accept=".csv" onChange={handleImportCSV} />
+            <input type="file" hidden accept=".csv,.txt" onChange={handleImportCSV} />
           </label>
+          <button onClick={downloadTemplate} className="btn-secondary" title="تنزيل قالب CSV فارغ" style={{ fontSize: '13px' }}>
+            📋 قالب فارغ
+          </button>
           <div style={{ position: 'relative' }}>
             <button onClick={() => setExportOpen(!exportOpen)} className="btn-secondary">
               <Download size={15} /> تصدير <ChevronDown size={13} />

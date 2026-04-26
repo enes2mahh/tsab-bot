@@ -29,6 +29,7 @@ export default function FilesPage() {
   const [search, setSearch] = useState('')
   const [uploading, setUploading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
+  const [typeFilter, setTypeFilter] = useState<'all' | 'image' | 'video' | 'document'>('all')
 
   const fetchFiles = async () => {
     const { data } = await createClient().from('files').select('*').order('created_at', { ascending: false })
@@ -81,16 +82,50 @@ export default function FilesPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const filtered = files.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
+  const totalSizeBytes = files.reduce((s, f) => s + (f.size || 0), 0)
+  const totalSizeMB = (totalSizeBytes / 1048576).toFixed(1)
+  const storageLimit = 100
+  const storagePercent = Math.min(100, (totalSizeBytes / (storageLimit * 1048576)) * 100)
+
+  const filtered = files.filter(f => {
+    const matchSearch = f.name.toLowerCase().includes(search.toLowerCase())
+    const matchType = typeFilter === 'all' ? true
+      : typeFilter === 'image' ? f.mime_type?.startsWith('image')
+      : typeFilter === 'video' ? f.mime_type?.startsWith('video')
+      : !f.mime_type?.startsWith('image') && !f.mime_type?.startsWith('video')
+    return matchSearch && matchType
+  })
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div><h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>مدير الملفات</h2><p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{files.length} ملف</p></div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>مدير الملفات</h2>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{files.length} ملف</p>
+        </div>
+        <div style={{ minWidth: '200px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+            <span>التخزين المستخدم</span>
+            <span>{totalSizeMB} MB / {storageLimit} MB</span>
+          </div>
+          <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${storagePercent}%`, background: storagePercent > 80 ? '#EF4444' : 'var(--gradient)', borderRadius: '3px', transition: 'width 0.5s' }} />
+          </div>
+        </div>
         <label className="btn-primary" style={{ cursor: 'pointer' }}>
           <Upload size={16} /> {uploading ? 'جاري الرفع...' : 'رفع ملف'}
           <input type="file" hidden onChange={handleUpload} accept="image/*,video/*,application/pdf,.doc,.docx" />
         </label>
+      </div>
+
+      {/* Type filter */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        {[{ v: 'all', l: 'الكل' }, { v: 'image', l: '🖼 صور' }, { v: 'video', l: '🎥 فيديو' }, { v: 'document', l: '📄 مستندات' }].map(t => (
+          <button key={t.v} onClick={() => setTypeFilter(t.v as any)}
+            style={{ padding: '5px 12px', borderRadius: '8px', border: `1px solid ${typeFilter === t.v ? 'var(--accent-violet)' : 'var(--border)'}`, background: typeFilter === t.v ? 'rgba(124,58,237,0.15)' : 'transparent', color: typeFilter === t.v ? '#A78BFA' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px' }}>
+            {t.l}
+          </button>
+        ))}
       </div>
 
       {/* Toolbar */}

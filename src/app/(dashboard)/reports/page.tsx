@@ -12,6 +12,7 @@ export default function ReportsPage() {
   const [typeData, setTypeData] = useState<any[]>([])
   const [filter, setFilter] = useState({ direction: '', status: '', device_id: '' })
   const [devices, setDevices] = useState<any[]>([])
+  const [period, setPeriod] = useState<7 | 30 | 90>(7)
 
   useEffect(() => {
     const supabase = createClient()
@@ -72,8 +73,18 @@ export default function ReportsPage() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div><h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>التقارير والتحليلات</h2></div>
-        <button onClick={exportCSV} className="btn-secondary"><Download size={16} /> تصدير CSV</button>
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>التقارير والتحليلات</h2>
+          <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+            {([7, 30, 90] as const).map(p => (
+              <button key={p} onClick={() => setPeriod(p)}
+                style={{ padding: '4px 12px', borderRadius: '8px', border: `1px solid ${period === p ? 'var(--accent-violet)' : 'var(--border)'}`, background: period === p ? 'rgba(124,58,237,0.15)' : 'transparent', color: period === p ? '#A78BFA' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}>
+                {p} يوم
+              </button>
+            ))}
+          </div>
+        </div>
+        <button onClick={exportCSV} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Download size={16} /> تصدير CSV</button>
       </div>
 
       {/* Stats */}
@@ -97,7 +108,7 @@ export default function ReportsPage() {
       {/* Charts */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px' }}>
         <div className="card">
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>نشاط الرسائل (7 أيام)</h3>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>نشاط الرسائل ({period} يوم)</h3>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
