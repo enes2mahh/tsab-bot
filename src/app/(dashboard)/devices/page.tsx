@@ -561,6 +561,7 @@ export default function DevicesPage() {
             </button>
           </div>
         ) : (
+          <div className="responsive-table-wrap">
           <table className="table-cosmic">
             <thead>
               <tr>
@@ -630,6 +631,7 @@ export default function DevicesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

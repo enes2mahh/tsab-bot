@@ -88,7 +88,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
         {[
           { label: 'مرسلة', value: sent, color: '#2563EB', icon: <MessageSquare size={18} /> },
           { label: 'واردة', value: received, color: '#10B981', icon: <MessageSquare size={18} /> },
@@ -106,7 +106,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px' }}>
+      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px' }}>
         <div className="card">
           <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>نشاط الرسائل ({period} يوم)</h3>
           <ResponsiveContainer width="100%" height={200}>
@@ -157,6 +157,7 @@ export default function ReportsPage() {
             {devices.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </div>
+        <div className="responsive-table-wrap">
         <table className="table-cosmic">
           <thead><tr><th>الرقم</th><th>الاتجاه</th><th>النوع</th><th>المحتوى</th><th>الحالة</th><th>التاريخ</th></tr></thead>
           <tbody>
@@ -174,6 +175,7 @@ export default function ReportsPage() {
             ))}
           </tbody>
         </table>
+        </div>
         {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '14px' }}>لا توجد رسائل</div>}
       </div>
     </div>

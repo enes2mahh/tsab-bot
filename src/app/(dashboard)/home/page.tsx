@@ -247,7 +247,7 @@ export default function HomePage() {
       </div>
 
       {/* Tables */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         {/* Recent Messages */}
         <div className="card" style={{ padding: '20px' }}>
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
@@ -262,30 +262,32 @@ export default function HomePage() {
               لا توجد رسائل بعد
             </div>
           ) : (
-            <table className="table-cosmic">
-              <thead>
-                <tr>
-                  <th>الرقم</th>
-                  <th>المحتوى</th>
-                  <th>الحالة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentMessages.map((msg) => (
-                  <tr key={msg.id}>
-                    <td style={{ fontSize: '13px' }}>{msg.to_number || msg.from_number || '-'}</td>
-                    <td style={{ fontSize: '13px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {typeof msg.content === 'object' ? (msg.content?.text || '-') : msg.content}
-                    </td>
-                    <td>
-                      <span className={`badge badge-${msg.status === 'sent' ? 'emerald' : msg.status === 'failed' ? 'red' : 'yellow'}`}>
-                        {msg.status === 'sent' ? 'مرسل' : msg.status === 'failed' ? 'فشل' : 'معلق'}
-                      </span>
-                    </td>
+            <div className="responsive-table-wrap">
+              <table className="table-cosmic">
+                <thead>
+                  <tr>
+                    <th>الرقم</th>
+                    <th>المحتوى</th>
+                    <th>الحالة</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentMessages.map((msg) => (
+                    <tr key={msg.id}>
+                      <td style={{ fontSize: '13px' }}>{msg.to_number || msg.from_number || '-'}</td>
+                      <td style={{ fontSize: '13px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {typeof msg.content === 'object' ? (msg.content?.text || '-') : msg.content}
+                      </td>
+                      <td>
+                        <span className={`badge badge-${msg.status === 'sent' ? 'emerald' : msg.status === 'failed' ? 'red' : 'yellow'}`}>
+                          {msg.status === 'sent' ? 'مرسل' : msg.status === 'failed' ? 'فشل' : 'معلق'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -303,34 +305,36 @@ export default function HomePage() {
               لا توجد حملات بعد
             </div>
           ) : (
-            <table className="table-cosmic">
-              <thead>
-                <tr>
-                  <th>الاسم</th>
-                  <th>المرسل</th>
-                  <th>الحالة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentCampaigns.map((c) => (
-                  <tr key={c.id}>
-                    <td style={{ fontSize: '13px' }}>{c.name}</td>
-                    <td style={{ fontSize: '13px' }}>{c.sent_count}/{c.total_count}</td>
-                    <td>
-                      <span className={`badge badge-${
-                        c.status === 'completed' ? 'emerald' :
-                        c.status === 'running' ? 'blue' :
-                        c.status === 'failed' ? 'red' : 'yellow'
-                      }`}>
-                        {c.status === 'completed' ? 'مكتملة' :
-                         c.status === 'running' ? 'تعمل' :
-                         c.status === 'draft' ? 'مسودة' : c.status}
-                      </span>
-                    </td>
+            <div className="responsive-table-wrap">
+              <table className="table-cosmic">
+                <thead>
+                  <tr>
+                    <th>الاسم</th>
+                    <th>المرسل</th>
+                    <th>الحالة</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentCampaigns.map((c) => (
+                    <tr key={c.id}>
+                      <td style={{ fontSize: '13px' }}>{c.name}</td>
+                      <td style={{ fontSize: '13px' }}>{c.sent_count}/{c.total_count}</td>
+                      <td>
+                        <span className={`badge badge-${
+                          c.status === 'completed' ? 'emerald' :
+                          c.status === 'running' ? 'blue' :
+                          c.status === 'failed' ? 'red' : 'yellow'
+                        }`}>
+                          {c.status === 'completed' ? 'مكتملة' :
+                           c.status === 'running' ? 'تعمل' :
+                           c.status === 'draft' ? 'مسودة' : c.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
