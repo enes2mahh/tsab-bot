@@ -198,7 +198,7 @@ export default function FAQsPage() {
         <div className="stat-card" style={{ borderTopColor: '#10B981' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>مرات الاستخدام</div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>{totalHits.toLocaleString('ar')}</div>
-          <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px' }}>≈ {totalHits} token تم توفيره</div>
+          <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px' }}>≈ {(totalHits * 30).toLocaleString('ar')} token وُفِّر</div>
         </div>
         <div className="stat-card" style={{ borderTopColor: '#F59E0B' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>قائمة الانتظار</div>

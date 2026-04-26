@@ -118,11 +118,15 @@ export default function HomePage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const [devicesRes, campaignsRes, subsRes, messagesRes] = await Promise.all([
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      const [devicesRes, campaignsRes, subsRes, messagesRes, msgTodayRes] = await Promise.all([
         supabase.from('devices').select('status').eq('user_id', user.id),
-        supabase.from('campaigns').select('status, id').eq('user_id', user.id),
+        supabase.from('campaigns').select('status, sent_count, failed_count, total_count').eq('user_id', user.id),
         supabase.from('subscriptions').select('*, plans(name)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single(),
-        supabase.from('messages').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+        supabase.from('messages').select('id, from_number, content, direction, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+        supabase.from('messages').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', today.toISOString()),
       ])
 
       const devices = devicesRes.data || []
@@ -130,23 +134,21 @@ export default function HomePage() {
       const subscription = subsRes.data
       const messages = messagesRes.data || []
 
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const messagesToday = messages.filter(
-        (m) => new Date(m.created_at) >= today
-      ).length
+      const totalSent = campaigns.reduce((s: number, c: any) => s + (c.sent_count || 0), 0)
+      const totalRecipients = campaigns.reduce((s: number, c: any) => s + (c.total_count || 0), 0)
+      const successRate = totalRecipients > 0 ? Math.round((totalSent / totalRecipients) * 100) : 0
 
       const daysRemaining = subscription
         ? Math.max(0, Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / 86400000))
         : 0
 
       setStats({
-        devicesConnected: devices.filter((d) => d.status === 'connected').length,
+        devicesConnected: devices.filter((d: any) => d.status === 'connected').length,
         devicesTotal: devices.length,
-        messagesToday,
-        campaignsActive: campaigns.filter((c) => c.status === 'running').length,
+        messagesToday: msgTodayRes.count || 0,
+        campaignsActive: campaigns.filter((c: any) => c.status === 'running').length,
         campaignsTotal: campaigns.length,
-        successRate: 98.5,
+        successRate,
         planName: (subscription?.plans as any)?.name || 'لا يوجد',
         daysRemaining,
         messagesUsed: subscription?.messages_used || 0,
@@ -181,25 +183,24 @@ export default function HomePage() {
       icon: <MessageSquare size={18} />,
       label: 'الرسائل اليوم',
       value: loading ? 0 : stats?.messagesToday ?? 0,
-      sub: 'رسالة مرسلة',
+      sub: 'رسالة اليوم',
       color: '#2563EB',
-      trend: 12,
     },
     {
       icon: <Megaphone size={18} />,
-      label: 'الحملات',
+      label: 'الحملات النشطة',
       value: loading ? 0 : stats?.campaignsActive ?? 0,
       sub: `من ${stats?.campaignsTotal ?? 0} إجمالي`,
       color: '#7C3AED',
-      trend: 5,
     },
     {
       icon: <CheckCircle size={18} />,
-      label: 'نسبة النجاح',
-      value: loading ? '...' : `${stats?.successRate ?? 0}%`,
-      sub: 'من الرسائل المرسلة',
+      label: 'نسبة التسليم',
+      value: loading ? '...' : stats?.successRate !== undefined
+        ? (stats.successRate > 0 ? `${stats.successRate}%` : '—')
+        : '—',
+      sub: 'نسبة تسليم الحملات',
       color: '#10B981',
-      trend: 1,
     },
     {
       icon: <Crown size={18} />,

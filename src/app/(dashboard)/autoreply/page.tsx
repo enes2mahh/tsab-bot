@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Bot, Trash2, GripVertical, X, Clock, Hash, MessageSquare, AlignLeft } from 'lucide-react'
+import { Plus, Bot, Trash2, X, Clock, Hash, MessageSquare, AlignLeft, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { exportData, type ExportColumn } from '@/lib/export'
 
 interface AutoReply {
   id: string
@@ -151,7 +152,21 @@ export default function AutoReplyPage() {
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>الرد التلقائي</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{replies.length} قاعدة</p>
         </div>
-        <button onClick={() => { setEditItem(null); setShowForm(true) }} className="btn-primary"><Plus size={16} /> قاعدة جديدة</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => {
+            const cols: ExportColumn<AutoReply>[] = [
+              { header: 'الاسم', accessor: r => r.name },
+              { header: 'التشغيل', accessor: r => triggerLabels[r.trigger_type] },
+              { header: 'الكلمة', accessor: r => r.trigger_value || '' },
+              { header: 'الاستخدامات', accessor: r => r.uses_count },
+              { header: 'الحالة', accessor: r => r.is_active ? 'مفعّل' : 'معطّل' },
+            ]
+            exportData(replies, cols, 'autoreply', 'csv')
+          }} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+            <Download size={14} /> تصدير
+          </button>
+          <button onClick={() => { setEditItem(null); setShowForm(true) }} className="btn-primary"><Plus size={16} /> قاعدة جديدة</button>
+        </div>
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
