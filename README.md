@@ -2,7 +2,7 @@
 
 منصة SaaS متكاملة لإدارة بوتات واتساب مع ردود ذكية فورية بقوة Google Gemini AI.
 
-> **آخر تحديث:** v8 Mobile + Fixes — راجع [قسم التحديثات](#-ما-تم-إنجازه-v8-mobile--fixes) للتفاصيل الكاملة.
+> **آخر تحديث:** v9 Footer Credits — راجع [قسم التحديثات](#-ما-تم-إنجازه-v9-footer-credits) للتفاصيل الكاملة.
 
 ---
 
@@ -36,7 +36,10 @@ tsab-bot/
 │   │   │       ├── codes/page.tsx     # أكواد التفعيل
 │   │   │       ├── tickets/page.tsx   # تذاكر الدعم
 │   │   │       ├── referrals/page.tsx # الإحالات والسحوبات
-│   │   │       └── settings/page.tsx  # إعدادات النظام
+│   │   │       ├── settings/page.tsx  # إعدادات النظام
+│   │   │       ├── all-contacts/page.tsx # كل جهات الاتصال عبر المستخدمين
+│   │   │       ├── inquiries/page.tsx # الاستفسارات الواردة
+│   │   │       └── jobs/page.tsx      # المهام في قائمة الانتظار
 │   │   ├── (auth)/
 │   │   │   ├── login/page.tsx
 │   │   │   └── register/page.tsx
@@ -57,7 +60,21 @@ tsab-bot/
 │   │   │   ├── referrals/page.tsx
 │   │   │   ├── filter/page.tsx
 │   │   │   ├── warmer/page.tsx
+│   │   │   ├── faqs/page.tsx         # FAQ + bot_faqs + hits counter
+│   │   │   ├── messenger/page.tsx    # محادثة مباشرة مع العملاء
+│   │   │   ├── business/page.tsx     # الملف التجاري للـ AI bot
+│   │   │   ├── stories/page.tsx      # Stories واتساب
 │   │   │   └── api-docs/page.tsx
+│   │   ├── auth/
+│   │   │   ├── callback/page.tsx     # email confirmation redirect من Supabase
+│   │   │   └── reset/page.tsx        # تعيين كلمة مرور جديدة
+│   │   ├── about/page.tsx
+│   │   ├── blog/page.tsx
+│   │   ├── careers/page.tsx
+│   │   ├── contact/page.tsx
+│   │   ├── help/page.tsx
+│   │   ├── partners/page.tsx
+│   │   ├── features/[slug]/page.tsx  # صفحات الميزات الديناميكية
 │   │   ├── privacy/page.tsx  # سياسة الخصوصية (EN+AR)
 │   │   ├── terms/page.tsx    # شروط الخدمة (EN+AR)
 │   │   ├── page.tsx          # الصفحة الرئيسية Landing
@@ -196,6 +213,9 @@ CREATE POLICY "owner_delete" ON storage.objects
 | `/admin/tickets` | عرض التذاكر + الرد + تغيير الحالة |
 | `/admin/referrals` | طلبات السحب + قبول/رفض + إعدادات العمولة |
 | `/admin/settings` | Gemini API + System Prompt + إعلانات + وضع الصيانة |
+| `/admin/all-contacts` | كل جهات الاتصال عبر جميع المستخدمين |
+| `/admin/inquiries` | الاستفسارات الواردة |
+| `/admin/jobs` | المهام في قائمة الانتظار |
 
 ---
 
@@ -266,6 +286,43 @@ CREATE POLICY "owner_delete" ON storage.objects
 > 🔑 احصل على **Gemini API Key** مجاناً من [aistudio.google.com](https://aistudio.google.com)
 
 > 🚀 ابدأ مجاناً بـ Supabase Free + Vercel Hobby
+
+---
+
+## 🚀 ما تم إنجازه (v9 Footer Credits)
+
+### تحديث الفوتر — نسب المشروع لأنس محمود
+
+**المشكلة:** الفوتر كان يعرض نص ثابت "صُنع بـ ❤️ للسوق العربي" بدون رابط.
+
+**التغيير:** استُبدلت الجملة في **كل** صفحات الموقع لتصبح:
+> صُنع بـ ❤️ بواسطة **أنس محمود** (رابط → enes-elhovete.com)
+
+**الملفات المعدّلة:**
+
+| الملف | الموقع | الصفحات المتأثرة |
+|-------|--------|-----------------|
+| `src/components/layout/PublicShell.tsx` | `FOOTER` object | login، register، privacy، terms |
+| `src/components/landing/LandingContent.tsx` | `T` object | الصفحة الرئيسية Landing |
+
+**التفاصيل التقنية:**
+- النص القديم: `sub: 'صُنع بـ ❤️ للسوق العربي'` (string عادي)
+- النص الجديد: انقسم إلى `subPrefix` + `subName` + `subHref`
+```ts
+// PublicShell.tsx
+ar: {
+  subPrefix: 'صُنع بـ ❤️ بواسطة ',
+  subName: 'أنس محمود',
+  subHref: 'https://www.enes-elhovete.com/',
+}
+en: {
+  subPrefix: 'Made with ❤️ by ',
+  subName: 'Anas Mahmoud',
+  subHref: 'https://www.enes-elhovete.com/',
+}
+```
+- في JSX: `subName` يُعرض داخل `<a>` مع `textDecoration: underline` — يفتح في تاب جديد
+- يعمل بالعربي والإنجليزي تلقائياً حسب اختيار اللغة
 
 ---
 
