@@ -2,6 +2,8 @@
 
 منصة SaaS متكاملة لإدارة بوتات واتساب مع ردود ذكية فورية بقوة Google Gemini AI.
 
+> **آخر تحديث:** v7 Dashboard Overhaul — راجع [قسم التحديثات](#-ما-تم-إنجازه-v7-dashboard-overhaul) للتفاصيل الكاملة.
+
 ---
 
 ## التقنيات المستخدمة
@@ -264,3 +266,158 @@ CREATE POLICY "owner_delete" ON storage.objects
 > 🔑 احصل على **Gemini API Key** مجاناً من [aistudio.google.com](https://aistudio.google.com)
 
 > 🚀 ابدأ مجاناً بـ Supabase Free + Vercel Hobby
+
+---
+
+## 🚀 ما تم إنجازه (v7 Dashboard Overhaul)
+
+### Phase 1 — إصلاحات حرجة
+- **`/messages`**: إصلاح schema (to_number/from_number + JSONB content) + source badges (AI/FAQ/Greeting) + mobile cards
+- **`/tickets`**: إصلاح الحفظ (ticket + ticket_messages) + modal محادثة كاملة + realtime
+- **`/devices`**: AI Settings modal → toggle + رابط للـ business profile
+- **Responsive Base**: إضافة CSS utilities في `globals.css` + sidebar drawer على موبايل
+
+### Phase 2 — Campaigns Smart System
+- `normalizeRecipients()`: يقبل أرقام مفصولة بأي طريقة، ينظّف رموز الدول، يزيل المكررات
+- 3 طرق إدخال: يدوي / CSV / من جهات الاتصال / من جروبات واتساب
+- رفع صور متعددة (حتى 5) + مستند + فيديو عبر Supabase Storage
+- Stats Modal: donut chart + bar chart + جدول تفصيلي لكل رقم
+- WA Server: إضافة `GET /devices/:id/groups` + `getGroups()` بـ Baileys
+
+### Phase 3 — Settings Professional
+- بادج تأكيد البريد (✓/✗) + زر إعادة إرسال
+- تغيير كلمة المرور مع التحقق من الحالية + strength bar
+- `ForgotPasswordModal`: reset بالإيميل أو OTP
+- API جديد: `POST /api/auth/reset-password-with-otp`
+- Webhook test button + timezone live preview
+
+### Phase 4a — Dashboard Pages
+- **`/home`**: إحصاءات حقيقية (count server-side، successRate من campaigns)
+- **`/faqs`**: توفير tokens = `hits × 30` + export
+- **`/autoreply`**: export CSV/Excel بـ `exportData()`
+- **`/templates`**: ربط DB + 20 قالب افتراضي + variable insertion + live preview
+
+### Phase 4b — Dashboard Pages (تكملة)
+- **`/contacts`**: استيراد CSV ذكي (EN/AR headers) + قالب فارغ للتنزيل
+- **`/files`**: مكتبة ملفات كاملة (grid/list + type filter + storage bar)
+- **`/reports`**: period selector (7/30/90) + charts responsive
+- **`/api-docs`**: 4 endpoints مع curl+JS + webhook payload + error codes
+
+### Phase 5 — Mobile Responsiveness
+- `grid-mobile-1` على كل الـ grids متعددة الأعمدة
+- `responsive-table-wrap` على كل الجداول
+- `stack-mobile` على flex rows في الـ headers
+- pages: home, devices, contacts, reports, warmer, referrals
+
+### Phase 6 — SQL Migrations
+ملف `supabase/v7_misc_fixes.sql`:
+- `messages.metadata JSONB` — لحفظ source + campaign_id
+- `faq_suggestions` view من `faq_learning_queue` مع security_invoker
+- 3 indexes (metadata source, created_at, user+date)
+
+### Extras — صفحات متبقية
+- **`/chatflow`**: device selector + is_active toggle + delete flows
+- **`/warmer`**: sessions log من `warmer_sessions` table
+- **`/referrals`**: responsive grids + tables
+- **`/login`**: "نسيت كلمة المرور؟" modal فعّال
+
+---
+
+## 📧 Resend Email Integration
+
+```
+src/lib/resend.ts           ← sendEmail() + 4 templates
+src/app/auth/callback/      ← يستقبل email confirmation redirect
+src/app/auth/reset/         ← صفحة تعيين كلمة مرور جديدة
+```
+
+**القوالب الجاهزة:**
+- `emailWelcome({ name })` — ترحيب بعد التسجيل
+- `emailCampaignCompleted({ name, sent, failed, total })` — اكتمال حملة
+- `emailSubscriptionExpiring({ name, daysLeft, planName })` — تحذير انتهاء اشتراك
+- `emailPasswordReset({ resetLink })` — إعادة تعيين كلمة المرور
+
+**إعداد Supabase SMTP:**
+```
+Host: smtp.resend.com | Port: 465
+Username: resend | Password: RESEND_API_KEY
+```
+
+---
+
+## 🔑 متغيرات البيئة الكاملة
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+# AI
+GEMINI_API_KEY=AIzaSy...
+
+# WA Server (Railway)
+NEXT_PUBLIC_WA_SERVER_URL=https://tsab-bot-production.up.railway.app
+WA_SERVER_SECRET=your-secret-key
+
+# App
+NEXT_PUBLIC_APP_URL=https://tsab-bot.vercel.app
+NEXT_PUBLIC_APP_NAME=Tsab Bot
+
+# Email (Resend)
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=Tsab Bot <noreply@yourdomain.com>
+RESEND_DOMAIN=yourdomain.com
+```
+
+---
+
+## 🗄️ تسلسل ملفات SQL
+
+شغّل بالترتيب في Supabase SQL Editor:
+
+```
+1. schema.sql                          ← الأساس الكامل (21 جدول)
+2. v2_wa_features.sql                  ← ميزات واتساب
+3. v3_public_pages.sql                 ← صفحات عامة
+4. v4_smart_bot_jobs.sql               ← bot_faqs + faq_learning_queue
+5. v5_notifications_otp_messenger.sql  ← OTP + إشعارات
+6. v6_storage_setup.sql                ← media bucket
+7. v7_misc_fixes.sql                   ← messages.metadata + indexes ← الجديد
+```
+
+---
+
+## 🛠️ المكتبات المشتركة
+
+| الملف | الاستخدام |
+|-------|----------|
+| `src/lib/export.ts` | `exportData<T>(rows, columns, filename, format)` → CSV/Excel |
+| `src/lib/datetime.ts` | `formatDate(date, timezone)` بـ Intl.DateTimeFormat عربي |
+| `src/lib/resend.ts` | `sendEmail()` + email templates |
+| `src/lib/supabase/client.ts` | browser client |
+| `src/lib/supabase/server.ts` | server client + admin client (service_role) |
+
+---
+
+## 📱 نظام Mobile Responsive
+
+```css
+/* في globals.css — يعمل على < 768px */
+.grid-mobile-1         → grid-template-columns: 1fr !important
+.responsive-table-wrap → overflow-x: auto; -webkit-overflow-scrolling: touch
+.stack-mobile          → flex-direction: column !important
+.hide-mobile           → display: none !important
+.show-mobile           → يُخفى على > 769px
+```
+
+الـ sidebar يصير drawer على الموبايل بـ CSS transform + `.mobile-overlay` backdrop.
+
+---
+
+## 📁 ملفات التوثيق
+
+موجودة في `docs/phases/`:
+- `00_START_HERE.md` — نقطة البداية
+- `01_PROJECT_OVERVIEW.md` — نظرة عامة
+- `PHASE_01_FOUNDATION.md` إلى `PHASE_06_TO_15_REMAINING.md` — خطط التطوير
