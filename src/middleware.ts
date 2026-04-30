@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
+const ADMIN_CACHE_COOKIE  = '__admin_verified'
+const ADMIN_CACHE_MAX_AGE = 300 // 5 minutes
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -26,7 +29,6 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  // Protected routes
   const isDashboard = pathname.includes('/home') || pathname.includes('/devices') ||
     pathname.includes('/campaigns') || pathname.includes('/messages') ||
     pathname.includes('/autoreply') || pathname.includes('/chatflow') ||
@@ -45,6 +47,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAdmin && user) {
+    // Fast path: role cached in cookie (5-min TTL) — avoids DB round-trip on every request
+    const cachedRole = request.cookies.get(ADMIN_CACHE_COOKIE)?.value
+    if (cachedRole === user.id) {
+      return supabaseResponse
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -56,6 +64,15 @@ export async function middleware(request: NextRequest) {
       url.pathname = '/home'
       return NextResponse.redirect(url)
     }
+
+    // Cache verified admin identity in a short-lived httpOnly cookie
+    supabaseResponse.cookies.set(ADMIN_CACHE_COOKIE, user.id, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: ADMIN_CACHE_MAX_AGE,
+    })
   }
 
   return supabaseResponse

@@ -4,29 +4,23 @@ import { useEffect, useState } from 'react'
 import { LogOut, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null
-  const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
-  return m ? decodeURIComponent(m[2]) : null
-}
-
-function deleteCookie(name: string) {
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;`
-}
-
 export function ImpersonateBanner() {
   const [originEmail, setOriginEmail] = useState<string | null>(null)
-  const [originName, setOriginName] = useState<string | null>(null)
+  const [originName,  setOriginName]  = useState<string | null>(null)
   const [currentEmail, setCurrentEmail] = useState<string | null>(null)
   const [exiting, setExiting] = useState(false)
 
   useEffect(() => {
-    const email = getCookie('impersonate_origin_email')
-    const name = getCookie('impersonate_origin_name')
-    if (email) {
-      setOriginEmail(email)
-      setOriginName(name)
-    }
+    // Read impersonation context from server (httpOnly cookies)
+    fetch('/api/admin/impersonate')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.impersonating) {
+          setOriginEmail(data.originEmail)
+          setOriginName(data.originName)
+        }
+      })
+      .catch(() => {})
 
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
@@ -34,23 +28,18 @@ export function ImpersonateBanner() {
     })
   }, [])
 
-  // Don't show if cookies are missing OR if we're already back to admin
   if (!originEmail || !currentEmail) return null
+  // Already back to admin account — clear server cookies silently
   if (originEmail === currentEmail) {
-    // Already back to admin — clean cookies
-    deleteCookie('impersonate_origin_email')
-    deleteCookie('impersonate_origin_name')
+    fetch('/api/admin/impersonate', { method: 'DELETE' }).catch(() => {})
     return null
   }
 
   const handleExit = async () => {
     setExiting(true)
-    // Sign out current (impersonated) session and clear cookies
     const supabase = createClient()
     await supabase.auth.signOut()
-    deleteCookie('impersonate_origin_email')
-    deleteCookie('impersonate_origin_name')
-    // Redirect to login (admin will sign back in)
+    await fetch('/api/admin/impersonate', { method: 'DELETE' }).catch(() => {})
     window.location.href = `/login?email=${encodeURIComponent(originEmail)}`
   }
 

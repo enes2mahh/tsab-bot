@@ -39,10 +39,12 @@ NEXT_PUBLIC_APP_NAME=Sends Bot
 RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL=Sends Bot <noreply@sendsbot.com>   # ✅ دومين حقيقي موثّق
 RESEND_DOMAIN=sendsbot.com
+OTP_JWT_SECRET=<64-char-hex>              # ✅ لتوقيع OTP tokens — Sensitive في Vercel
 ```
 
 > ✅ **Resend مع `sendsbot.com`**: يرسل لأي بريد إلكتروني. الدومين موثّق في Resend Dashboard.
 > ℹ️ **WA_SERVER_SECRET**: لم يتغير في Railway — لا تغيّره في Vercel إلا إذا غيّرته في Railway أيضاً.
+> ⚠️ **OTP_JWT_SECRET**: يجب أن يكون Sensitive في Vercel. يُستخدم فقط في `src/lib/jwt-utils.ts`.
 
 ---
 
@@ -113,7 +115,9 @@ RESEND_DOMAIN=sendsbot.com
 /auth/forgot-password           POST { email } → جاهز للاستخدام مع Resend عند توفر دومين
 /settings/test-webhook          POST → اختبار webhook URL
 /admin/update-user              POST (service role)
-/admin/impersonate              POST
+/admin/impersonate              GET  → يرجع { impersonating, originEmail, originName } من httpOnly cookie
+/admin/impersonate              POST → ينشئ magic link + يضبط httpOnly cookies + يسجّل في admin_audit_logs
+/admin/impersonate              DELETE → يمحو httpOnly impersonation cookies
 /test/resend                    GET → اختبار إرسال Resend
 ```
 
@@ -146,6 +150,15 @@ RESEND_DOMAIN=sendsbot.com
 | `supabase/client.ts` | browser Supabase client |
 | `supabase/server.ts` | server Supabase client + admin client (service_role) |
 | `ai/gemini.ts` | Gemini REST integration |
+| `jwt-utils.ts` | `generateOTPToken(phone, otpId)` + `verifyOTPToken(token)` — HMAC-SHA256، لا deps |
+| `rate-limit.ts` | `checkRateLimit(key, max, windowMs)` — in-memory، يُستخدم في API routes |
+
+## مكتبات WA Server (`wa-server/src/lib/`)
+
+| الملف | الوظيفة |
+|-------|---------|
+| `cache.js` | `get/set/del/delByPrefix` — in-memory TTL cache (بدون Redis) |
+| `queues.js` | `messageQueue / campaignQueue` — in-memory job queue مع retry + backoff |
 
 ---
 
@@ -159,6 +172,7 @@ v4_smart_bot_jobs.sql               ← bot_faqs + faq_learning_queue + jobs
 v5_notifications_otp_messenger.sql  ← OTP + إشعارات + phone_otps
 v6_storage_setup.sql                ← media bucket
 v7_misc_fixes.sql                   ← messages.metadata + faq_suggestions view + indexes
+v9_security_fixes.sql               ← admin_audit_logs + activate_code_safe() function ✅ (مطبّق)
 ```
 
 ---
@@ -176,6 +190,7 @@ v7_misc_fixes.sql                   ← messages.metadata + faq_suggestions view
 | `ticket_messages` | sender_id + is_staff — ⚠️ ليس `message` على جدول `tickets` |
 | `warmer_config` | upsert دائماً (user واحد = config واحد) |
 | `phone_otps` | OTP واتساب: `phone, code, purpose, expires_at, used, attempts` |
+| `admin_audit_logs` | سجل عمليات الأدمن: impersonate + reset_password + code_activation — يُكتب server-side فقط |
 
 ---
 
@@ -296,6 +311,41 @@ const supabase = createSupaClient(url, serviceKey, { auth: { persistSession: fal
 | `createClient()` على الـ server | استخدم `@/lib/supabase/server` مش client |
 | `.glass` على كاردات صفحات عادية | `.glass` للـ modals فقط (fixed position) |
 | `grid-mobile-1` | مش موجود — استخدم `.grid-2` أو `useIsMobile` |
+| قراءة `impersonate_origin_email` من `document.cookie` | استخدم `GET /api/admin/impersonate` — الكوكيز httpOnly |
+| إرسال `verifiedToken: otp.id` (UUID خام) | استخدم `generateOTPToken()` من `src/lib/jwt-utils.ts` |
+| التحقق من subscription بدون `.gt('expires_at', ...)` | لازم تضيف expiry check وإلا الاشتراكات المنتهية تمر |
+| تفعيل الكود بـ queries منفصلة | استخدم `rpc('activate_code_safe')` لتجنب race condition |
+
+## أنماط الأمان المضافة (v9)
+
+```ts
+// OTP Token — generate (في verify-otp)
+import { generateOTPToken } from '@/lib/jwt-utils'
+const verifiedToken = generateOTPToken(phone, otp.id)
+
+// OTP Token — verify (في register)
+import { verifyOTPToken } from '@/lib/jwt-utils'
+const tokenData = verifyOTPToken(verifiedToken)
+if (!tokenData || tokenData.phone !== phone) return error(401)
+
+// Subscription check صحيح (لازم expiry + block if null)
+const { data: sub } = await supabase.from('subscriptions')
+  .select('id, messages_used, messages_limit')
+  .eq('user_id', user.id).in('status', ['trial', 'active'])
+  .gt('expires_at', new Date().toISOString())
+  .order('expires_at', { ascending: false }).limit(1).single()
+if (!sub) return NextResponse.json({ error: '...', code: 'NO_ACTIVE_SUBSCRIPTION' }, { status: 402 })
+
+// Audit log (server-side فقط عبر adminClient)
+await adminClient.from('admin_audit_logs').insert({
+  admin_id, admin_email, action, target_user_id, target_email,
+  ip_address, user_agent, timestamp: new Date().toISOString()
+})
+
+// WA Server cache (في whatsapp.js)
+const cache = require('../lib/cache')
+const faqs = cache.get(`faqs:${deviceId}`) || (await fetchAndCache())
+```
 
 ---
 

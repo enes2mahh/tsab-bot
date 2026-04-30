@@ -12,6 +12,7 @@ const path = require('path')
 const fs = require('fs')
 const axios = require('axios')
 const { SUPABASE_URL, SUPABASE_SERVICE_KEY, GEMINI_API_KEY } = require('../config')
+const cache = require('../lib/cache')
 
 // ========== Direct REST call to Gemini (no SDK = no surprises) ==========
 async function callGeminiREST({ apiKey, model, apiVersion, systemPrompt, history, userText }) {
@@ -579,11 +580,18 @@ class WhatsAppService {
     const normalized = this._normalize(text)
     if (!normalized) return false
 
-    const { data: faqs } = await supabase
-      .from('bot_faqs')
-      .select('*')
-      .eq('device_id', deviceId)
-      .eq('is_active', true)
+    const faqCacheKey = `faqs:${deviceId}`
+    let faqs = cache.get(faqCacheKey)
+
+    if (!faqs) {
+      const { data } = await supabase
+        .from('bot_faqs')
+        .select('id, question_normalized, answer, hits_count, source')
+        .eq('device_id', deviceId)
+        .eq('is_active', true)
+      faqs = data || []
+      cache.set(faqCacheKey, faqs, 3600) // 1 hour
+    }
 
     if (!faqs?.length) return false
 
@@ -627,10 +635,15 @@ class WhatsAppService {
     const normalized = this._normalize(text)
     if (!normalized || normalized.length > 60) return false  // Greetings are short
 
-    const { data: greetings } = await supabase
-      .from('global_greetings')
-      .select('*')
-      .eq('is_active', true)
+    let greetings = cache.get('greetings:global')
+    if (!greetings) {
+      const { data } = await supabase
+        .from('global_greetings')
+        .select('pattern, default_response')
+        .eq('is_active', true)
+      greetings = data || []
+      cache.set('greetings:global', greetings, 86400) // 24 hours
+    }
 
     if (!greetings?.length) return false
 
@@ -784,12 +797,20 @@ class WhatsAppService {
 
       console.log(`[AI] history: ${chatHistory.length} msgs`)
 
-      // Build context-aware system prompt from business_profile
-      const { data: bizProfile } = await supabase
-        .from('business_profile')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
+      // Build context-aware system prompt from business_profile (cached 2h)
+      const bizCacheKey = `biz:${userId}`
+      let bizProfile = cache.get(bizCacheKey)
+      if (bizProfile === null) { // null means "checked, no profile"
+        bizProfile = undefined
+      } else if (!bizProfile) {
+        const { data } = await supabase
+          .from('business_profile')
+          .select('business_name,business_type,description,bot_personality,services,payment_info,working_hours,handoff_message,custom_rules')
+          .eq('user_id', userId)
+          .single()
+        bizProfile = data || null
+        cache.set(bizCacheKey, bizProfile, 7200) // 2 hours
+      }
 
       // Use cached system prompt if still fresh (saves ~70% of tokens)
       let systemPrompt = getCachedPrompt(deviceId)

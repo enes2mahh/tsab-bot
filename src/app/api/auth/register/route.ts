@@ -34,24 +34,31 @@ export async function POST(req: NextRequest) {
     let phoneVerified = false
 
     if (otpDeviceId && phone) {
-      // OTP required
+      // OTP required — validate the signed JWT token
       if (!verifiedToken) {
         return NextResponse.json({ error: 'يجب التحقق من رقم الهاتف أولاً' }, { status: 400 })
       }
-      // Check verified token belongs to this phone and is recent (< 15 min)
+
+      const { verifyOTPToken } = await import('@/lib/jwt-utils')
+      const tokenData = verifyOTPToken(verifiedToken)
+
+      if (!tokenData) {
+        return NextResponse.json({ error: 'رمز التحقق غير صحيح أو انتهت صلاحيته' }, { status: 401 })
+      }
+      if (tokenData.phone !== phone) {
+        return NextResponse.json({ error: 'رقم الهاتف لا يطابق رمز التحقق' }, { status: 400 })
+      }
+
+      // Confirm the OTP row is still marked used (guards against token reuse after DB reset)
       const { data: otp } = await supabase
         .from('phone_otps')
-        .select('*')
-        .eq('id', verifiedToken)
-        .eq('phone', phone)
+        .select('id')
+        .eq('id', tokenData.otp_id)
         .eq('used', true)
         .single()
 
       if (!otp) {
         return NextResponse.json({ error: 'رمز التحقق غير صحيح' }, { status: 400 })
-      }
-      if (new Date(otp.expires_at).getTime() < Date.now() - 15 * 60 * 1000) {
-        return NextResponse.json({ error: 'انتهت صلاحية رمز التحقق. سجّل من جديد.' }, { status: 410 })
       }
 
       phoneVerified = true

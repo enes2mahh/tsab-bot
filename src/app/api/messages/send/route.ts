@@ -20,10 +20,28 @@ export async function POST(req: NextRequest) {
   if (!device) return NextResponse.json({ error: 'الجهاز غير موجود' }, { status: 404 })
   if (device.status !== 'connected') return NextResponse.json({ error: 'الجهاز غير متصل' }, { status: 400 })
 
-  // Check message quota
-  const { data: sub } = await supabase.from('subscriptions').select('messages_used, messages_limit').eq('user_id', user.id).in('status', ['trial', 'active']).order('created_at', { ascending: false }).limit(1).single()
-  if (sub && sub.messages_used >= sub.messages_limit) {
-    return NextResponse.json({ error: 'تجاوزت حد الرسائل الشهري' }, { status: 429 })
+  // Check active subscription (must be non-expired)
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('id, messages_used, messages_limit')
+    .eq('user_id', user.id)
+    .in('status', ['trial', 'active'])
+    .gt('expires_at', new Date().toISOString())
+    .order('expires_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (!sub) {
+    return NextResponse.json({
+      error: 'ليس لديك اشتراك نشط. قم بالترقية للاستمرار.',
+      code: 'NO_ACTIVE_SUBSCRIPTION',
+    }, { status: 402 })
+  }
+  if (sub.messages_used >= sub.messages_limit) {
+    return NextResponse.json({
+      error: 'تجاوزت حد الرسائل الشهري',
+      code: 'QUOTA_EXCEEDED',
+    }, { status: 429 })
   }
 
   // Send via WA server

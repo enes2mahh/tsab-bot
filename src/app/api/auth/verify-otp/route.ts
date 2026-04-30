@@ -62,11 +62,13 @@ export async function POST(req: NextRequest) {
     // Mark used
     await supabase.from('phone_otps').update({ used: true }).eq('id', otp.id)
 
-    // Generate a one-time verification token (15min validity)
-    // We reuse the otp.id as token reference (client will pass it back to register endpoint)
+    // Generate a signed JWT (15min validity) — safer than exposing plain UUID
+    const { generateOTPToken } = await import('@/lib/jwt-utils')
+    const verifiedToken = generateOTPToken(phone, otp.id)
+
     return NextResponse.json({
       success: true,
-      verifiedToken: otp.id,
+      verifiedToken,
       phone,
       message: 'تم التحقق بنجاح',
     })
