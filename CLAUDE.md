@@ -19,7 +19,8 @@
 - **DB**: Supabase PostgreSQL مع RLS كامل
 - **WA Server**: Express + Baileys في `wa-server/` — deployed على Railway
 - **AI**: Google Gemini 2.0 Flash عبر REST API مباشرة
-- **Email**: Resend API (`src/lib/resend.ts`) — حالياً `onboarding@resend.dev` (test، يرسل لبريد حساب Resend فقط)
+- **Email إرسال**: Resend API (`src/lib/resend.ts`) — دومين موثّق `sendsbot.com` → يرسل من `noreply@sendsbot.com` لأي بريد ✅
+- **Email استقبال**: ImprovMX — يحوّل `support@sendsbot.com` و `privacy@sendsbot.com` لـ `sendsbot@gmail.com` ✅
 - **Export**: CSV + Excel عبر `src/lib/export.ts`
 
 ---
@@ -31,16 +32,17 @@ NEXT_PUBLIC_SUPABASE_URL=https://bvhsqmlohxcjxcxbssdp.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...          # للعمليات الإدارية فقط (server-side)
 GEMINI_API_KEY=AIzaSy...
-NEXT_PUBLIC_WA_SERVER_URL=https://sends-bot-production.up.railway.app
-WA_SERVER_SECRET=sends-bot-super-secret-key-2024-railway
-NEXT_PUBLIC_APP_URL=https://sends-bot.vercel.app
+NEXT_PUBLIC_WA_SERVER_URL=https://tsab-bot-production.up.railway.app
+WA_SERVER_SECRET=tsab-bot-super-secret-key-2024-railway
+NEXT_PUBLIC_APP_URL=https://sendsbot.com
 NEXT_PUBLIC_APP_NAME=Sends Bot
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=Sends Bot <onboarding@resend.dev>   # ⚠️ test فقط
-RESEND_DOMAIN=resend.dev
+RESEND_FROM_EMAIL=Sends Bot <noreply@sendsbot.com>   # ✅ دومين حقيقي موثّق
+RESEND_DOMAIN=sendsbot.com
 ```
 
-> ⚠️ **Resend مع `onboarding@resend.dev`**: يرسل فقط لبريد حساب Resend (`zero.anas123@gmail.com`). لإرسال لأي بريد يجب إضافة دومين موثّق في Resend Dashboard.
+> ✅ **Resend مع `sendsbot.com`**: يرسل لأي بريد إلكتروني. الدومين موثّق في Resend Dashboard.
+> ℹ️ **WA_SERVER_SECRET**: لم يتغير في Railway — لا تغيّره في Vercel إلا إذا غيّرته في Railway أيضاً.
 
 ---
 
@@ -301,8 +303,18 @@ const supabase = createSupaClient(url, serviceKey, { auth: { persistSession: fal
 
 | الخدمة | الاستخدام | الرابط |
 |--------|----------|--------|
-| Vercel | Next.js frontend | sends-bot.vercel.app |
-| Railway | WA Server (Baileys) | sends-bot-production.up.railway.app |
+| Vercel | Next.js frontend | sendsbot.com / sendsbot.vercel.app |
+| Railway | WA Server (Baileys) | tsab-bot-production.up.railway.app |
 | Supabase | DB + Auth + Storage | bvhsqmlohxcjxcxbssdp.supabase.co |
-| Resend | Email delivery | resend.com |
-| GitHub | Source code | github.com/enes2mahh/sends-bot |
+| Resend | Email إرسال | resend.com — دومين sendsbot.com موثّق |
+| ImprovMX | Email استقبال | improvmx.com — forward لـ sendsbot@gmail.com |
+| GitHub | Source code | github.com/enes2mahh/sendsbot |
+| Spaceship | Domain registrar | sendsbot.com (يتجدد Apr 2027) |
+
+## الإيميلات
+
+| البريد | الوظيفة | الوجهة |
+|--------|---------|--------|
+| `noreply@sendsbot.com` | إرسال تلقائي (Resend) | — |
+| `support@sendsbot.com` | دعم المستخدمين | sendsbot@gmail.com |
+| `privacy@sendsbot.com` | استفسارات الخصوصية | sendsbot@gmail.com |
