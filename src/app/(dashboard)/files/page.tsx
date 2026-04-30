@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import NextImage from 'next/image'
 import { Upload, FolderOpen, Copy, Trash2, Image, FileText, Film, File, Search, Grid, List } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -166,7 +167,7 @@ export default function FilesPage() {
             <div key={file.id} className="card" style={{ padding: '12px', position: 'relative' }}>
               <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', background: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden' }}>
                 {file.mime_type?.startsWith('image') ? (
-                  <img src={file.public_url} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <NextImage src={file.public_url} alt={file.name || file.original_name || 'ملف'} fill style={{ objectFit: 'cover' }} unoptimized />
                 ) : <FileIcon mime={file.mime_type} />}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '4px' }}>{file.original_name}</div>

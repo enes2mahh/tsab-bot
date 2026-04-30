@@ -25,6 +25,27 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
 
+  // Input validation
+  if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
+    return NextResponse.json({ error: 'اسم الحملة مطلوب' }, { status: 400 })
+  }
+  if (body.name.length > 200) {
+    return NextResponse.json({ error: 'اسم الحملة طويل جداً' }, { status: 400 })
+  }
+  if (!Array.isArray(body.recipients)) {
+    return NextResponse.json({ error: 'قائمة المستلمين غير صحيحة' }, { status: 400 })
+  }
+  if (body.recipients.length === 0) {
+    return NextResponse.json({ error: 'يجب إضافة مستلم واحد على الأقل' }, { status: 400 })
+  }
+  if (body.recipients.length > 10000) {
+    return NextResponse.json({ error: 'الحد الأقصى للمستلمين هو 10,000' }, { status: 400 })
+  }
+  const msgText = body.message_content?.text || body.message_content?.caption || ''
+  if (typeof msgText === 'string' && msgText.length > 4096) {
+    return NextResponse.json({ error: 'نص الرسالة طويل جداً (الحد 4096 حرف)' }, { status: 400 })
+  }
+
   const { data, error } = await supabase
     .from('campaigns')
     .insert({

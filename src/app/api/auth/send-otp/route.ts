@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupaClient } from '@supabase/supabase-js'
+import { getClientIp, checkRateLimit } from '@/lib/rate-limit'
 
 export const maxDuration = 30
 
@@ -9,6 +10,12 @@ export const maxDuration = 30
 // Falls back gracefully if no device is configured (returns ok=true, otp_skipped=true).
 export async function POST(req: NextRequest) {
   try {
+    // IP-based rate limit: max 10 OTP requests per IP per hour
+    const ip = getClientIp(req)
+    if (!checkRateLimit(`otp-send:${ip}`, 10, 60 * 60 * 1000)) {
+      return NextResponse.json({ error: 'تجاوزت الحد المسموح. حاول لاحقاً.' }, { status: 429 })
+    }
+
     const { phone: rawPhone, purpose = 'register' } = await req.json()
 
     if (!rawPhone || typeof rawPhone !== 'string') {
@@ -61,28 +68,20 @@ export async function POST(req: NextRequest) {
       attempts: 0,
     })
 
-    // If no OTP device configured, skip sending (graceful)
+    // If no OTP device configured, skip sending (graceful) — don't expose reason
     if (!otpDeviceId) {
-      return NextResponse.json({
-        success: true,
-        otp_skipped: true,
-        message: 'OTP لم يُرسل (الأدمن لم يُعدّ جهاز OTP). الحساب سيُنشأ بدون تحقق.',
-      })
+      return NextResponse.json({ success: true })
     }
 
     // Send via WA server
     const waUrl = process.env.NEXT_PUBLIC_WA_SERVER_URL
     const waSecret = process.env.WA_SERVER_SECRET
     if (!waUrl || !waSecret) {
-      return NextResponse.json({
-        success: true,
-        otp_skipped: true,
-        message: 'سيرفر واتساب غير مضبوط. يُرسل OTP لاحقاً.',
-      })
+      return NextResponse.json({ success: true })
     }
 
     const purposeLabel = purpose === 'register' ? 'إنشاء حساب' : 'استعادة كلمة المرور'
-    const message = `🔐 رمز التحقق الخاص بك في Tsab Bot
+    const message = `🔐 رمز التحقق الخاص بك في Sends Bot
 
 الرمز: *${code}*
 

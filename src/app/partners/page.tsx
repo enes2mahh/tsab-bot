@@ -7,14 +7,14 @@ import { useLang } from '@/lib/lang'
 
 const T = {
   ar: {
-    title: 'الشراكة مع Tsab Bot',
+    title: 'الشراكة مع Sends Bot',
     subtitle: 'انضم لشبكة شركائنا واحصل على عمولات مجزية وحلول مخصّصة',
     types: 'أنواع الشراكات',
     typeList: [
       { icon: <Award size={28} />, title: 'شريك معتمد', desc: 'إعادة بيع المنصة بأسعار خاصة وحصرية', color: '#7C3AED' },
       { icon: <TrendingUp size={28} />, title: 'شريك إحالة', desc: 'احصل على عمولة 20% من كل عميل تجلبه', color: '#10B981' },
       { icon: <Users size={28} />, title: 'وكالة تسويق', desc: 'حلول مخصّصة لإدارة حسابات متعدّدة لعملائك', color: '#F59E0B' },
-      { icon: <Handshake size={28} />, title: 'تكامل تقني', desc: 'دمج Tsab Bot مع منتجك عبر API', color: '#2563EB' },
+      { icon: <Handshake size={28} />, title: 'تكامل تقني', desc: 'دمج Sends Bot مع منتجك عبر API', color: '#2563EB' },
     ],
     benefitsTitle: 'مزايا الشراكة',
     benefits: [
@@ -35,14 +35,14 @@ const T = {
     types_options: ['شريك معتمد', 'شريك إحالة', 'وكالة تسويق', 'تكامل تقني', 'أخرى'],
   },
   en: {
-    title: 'Partner with Tsab Bot',
+    title: 'Partner with Sends Bot',
     subtitle: 'Join our partner network for great commissions and custom solutions',
     types: 'Partnership Types',
     typeList: [
       { icon: <Award size={28} />, title: 'Certified Partner', desc: 'Resell the platform at exclusive special prices', color: '#7C3AED' },
       { icon: <TrendingUp size={28} />, title: 'Referral Partner', desc: 'Earn 20% commission on every customer you bring', color: '#10B981' },
       { icon: <Users size={28} />, title: 'Marketing Agency', desc: 'Custom solutions for managing multiple client accounts', color: '#F59E0B' },
-      { icon: <Handshake size={28} />, title: 'Technical Integration', desc: 'Integrate Tsab Bot with your product via API', color: '#2563EB' },
+      { icon: <Handshake size={28} />, title: 'Technical Integration', desc: 'Integrate Sends Bot with your product via API', color: '#2563EB' },
     ],
     benefitsTitle: 'Partnership Benefits',
     benefits: [

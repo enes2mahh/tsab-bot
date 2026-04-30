@@ -31,9 +31,21 @@ const io = new Server(server, {
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }))
 app.use(express.json({ limit: '50mb' }))
 
-// Health check (no auth)
+// Health check (no auth) — includes memory and session stats
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+  const mem = process.memoryUsage()
+  const activeSessions = whatsappService.getSessionCount ? whatsappService.getSessionCount() : 0
+  res.json({
+    status: 'ok',
+    uptime_seconds: Math.round(process.uptime()),
+    sessions: activeSessions,
+    memory: {
+      heap_used_mb: Math.round(mem.heapUsed / 1024 / 1024),
+      heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
+      rss_mb: Math.round(mem.rss / 1024 / 1024),
+    },
+    timestamp: new Date().toISOString(),
+  })
 })
 
 // Auth middleware for all other routes

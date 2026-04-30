@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupaClient } from '@supabase/supabase-js'
+import { getClientIp, checkRateLimit } from '@/lib/rate-limit'
 
 // POST /api/admin/impersonate
 // Body: { userId: string }
 // Generates a magic-link login URL for the target user.
 // Only admins can call this.
 export async function POST(req: NextRequest) {
+  // IP-based rate limit: max 10 impersonate requests per IP per hour
+  const ip = getClientIp(req)
+  if (!checkRateLimit(`impersonate:${ip}`, 10, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'تجاوزت الحد المسموح.' }, { status: 429 })
+  }
+
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
@@ -63,9 +70,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Build response with cookie tracking original admin
-  const res = NextResponse.json({ url: data.properties.action_link, target: { email: target.email, name: target.name } })
+  const allowedOrigins = [process.env.NEXT_PUBLIC_APP_URL || 'https://sendsbot.com']
+  const requestOrigin = req.headers.get('origin') || ''
+  const safeOrigin = allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0]
+  const safeActionLink = data.properties.action_link.replace(new URL(data.properties.action_link).origin, safeOrigin)
 
-  // Track original admin so we can "exit impersonate" later
+  const res = NextResponse.json({ url: safeActionLink, target: { email: target.email, name: target.name } })
+
+  // These cookies hold display-only info (email/name for the banner UI)
+  // They must remain non-httpOnly so the ImpersonateBanner can read/clear them from JS.
+  // Actual session security is handled by Supabase's own httpOnly session cookies.
   res.cookies.set('impersonate_origin_email', caller.email || '', {
     httpOnly: false,
     secure: true,

@@ -10,7 +10,7 @@ const T = {
     title: 'من نحن',
     subtitle: 'قصتنا، رسالتنا، والقيم اللي تقودنا',
     storyTitle: 'قصّتنا',
-    story: `بدأت Tsab Bot من ملاحظة بسيطة: كل صاحب عمل صغير في العالم العربي يستخدم واتساب لخدمة عملائه، لكن الأدوات الموجودة إما باهظة الثمن، أو معقّدة، أو غير مدعومة بالعربية.
+    story: `بدأت Sends Bot من ملاحظة بسيطة: كل صاحب عمل صغير في العالم العربي يستخدم واتساب لخدمة عملائه، لكن الأدوات الموجودة إما باهظة الثمن، أو معقّدة، أو غير مدعومة بالعربية.
 
 قرّرنا نبني الحل اللي كنا نحتاجه نحن. منصّة كاملة، عربية، ذكية، وبسعر يقدر عليه أي صاحب مشروع.`,
     missionTitle: 'رسالتنا',
@@ -42,7 +42,7 @@ const T = {
     title: 'About Us',
     subtitle: 'Our story, mission, and values',
     storyTitle: 'Our Story',
-    story: `Tsab Bot started from a simple observation: every small business in the Arab world uses WhatsApp to serve customers, but the available tools were either expensive, complex, or didn't properly support Arabic.
+    story: `Sends Bot started from a simple observation: every small business in the Arab world uses WhatsApp to serve customers, but the available tools were either expensive, complex, or didn't properly support Arabic.
 
 So we decided to build the solution we needed ourselves. A complete, Arabic-first, intelligent platform at a price every business can afford.`,
     missionTitle: 'Our Mission',

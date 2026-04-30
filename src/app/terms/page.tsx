@@ -4,8 +4,8 @@ import { StarField } from '@/components/cosmic/StarField'
 import { Zap } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'شروط الخدمة | Tsab Bot',
-  description: 'شروط وأحكام استخدام منصة Tsab Bot',
+  title: 'شروط الخدمة | Sends Bot',
+  description: 'شروط وأحكام استخدام منصة Sends Bot',
 }
 
 export default function TermsPage() {
@@ -20,7 +20,7 @@ export default function TermsPage() {
               <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Zap size={18} color="white" />
               </div>
-              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Sends Bot</span>
             </Link>
             <Link href="/" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>← العودة للرئيسية</Link>
           </div>
@@ -40,11 +40,11 @@ export default function TermsPage() {
             {[
               {
                 title: '1. القبول بالشروط',
-                content: `باستخدامك لمنصة Tsab Bot، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي جزء منها، يُرجى عدم استخدام المنصة.`,
+                content: `باستخدامك لمنصة Sends Bot، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي جزء منها، يُرجى عدم استخدام المنصة.`,
               },
               {
                 title: '2. وصف الخدمة',
-                content: `Tsab Bot هي منصة SaaS تتيح لك:
+                content: `Sends Bot هي منصة SaaS تتيح لك:
 • ربط أجهزة واتساب وإدارتها
 • إرسال رسائل فردية وجماعية
 • إعداد ردود تلقائية وتدفقات محادثة
@@ -90,14 +90,14 @@ export default function TermsPage() {
               },
               {
                 title: '7. حدود المسؤولية',
-                content: `• Tsab Bot غير مسؤول عن قيام واتساب/Meta بحظر أرقامك
+                content: `• Sends Bot غير مسؤول عن قيام واتساب/Meta بحظر أرقامك
 • لسنا مسؤولين عن أي خسائر ناتجة عن انقطاع الخدمة
 • الحد الأقصى لمسؤوليتنا لا يتجاوز مبلغ اشتراكك الشهري
 • الخدمة مقدَّمة "كما هي" بدون ضمانات صريحة`,
               },
               {
                 title: '8. الملكية الفكرية',
-                content: `• جميع حقوق المنصة محفوظة لـ Tsab Bot
+                content: `• جميع حقوق المنصة محفوظة لـ Sends Bot
 • لا يحق لك نسخ أو إعادة بيع أو توزيع المنصة
 • محتوى بياناتك يبقى ملكك، وتمنحنا رخصة استخدامه لتقديم الخدمة`,
               },
@@ -108,7 +108,7 @@ export default function TermsPage() {
               {
                 title: '10. التواصل',
                 content: `لأي استفسار عن الشروط:
-📧 البريد: support@tsab-bot.com`,
+📧 البريد: support@sendsbot.com`,
               },
             ].map(section => (
               <div key={section.title} style={{ marginBottom: '28px' }}>
@@ -138,7 +138,7 @@ export default function TermsPage() {
             {[
               {
                 title: '1. Acceptance of Terms',
-                content: 'By using Tsab Bot, you agree to be bound by these terms. If you disagree with any part, please do not use the platform.',
+                content: 'By using Sends Bot, you agree to be bound by these terms. If you disagree with any part, please do not use the platform.',
               },
               {
                 title: '2. Acceptable Use',
@@ -163,14 +163,14 @@ Prohibited uses:
               },
               {
                 title: '4. Limitation of Liability',
-                content: `• Tsab Bot is not responsible for WhatsApp/Meta banning your numbers
+                content: `• Sends Bot is not responsible for WhatsApp/Meta banning your numbers
 • We are not liable for losses from service interruptions
 • Our maximum liability does not exceed your monthly subscription fee
 • Service is provided "as-is" without express warranties`,
               },
               {
                 title: '5. Contact',
-                content: 'For any inquiries about these terms:\n📧 support@tsab-bot.com',
+                content: 'For any inquiries about these terms:\n📧 support@sendsbot.com',
               },
             ].map(section => (
               <div key={section.title} style={{ marginBottom: '28px' }}>
@@ -187,7 +187,7 @@ Prohibited uses:
         </div>
 
         <div style={{ borderTop: '1px solid var(--border)', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-          <Link href="/" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>Tsab Bot</Link> — جميع الحقوق محفوظة © 2026
+          <Link href="/" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>Sends Bot</Link> — جميع الحقوق محفوظة © 2026
         </div>
       </div>
     </div>

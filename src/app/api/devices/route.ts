@@ -29,6 +29,23 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { name, webhook_url } = body
 
+  // Validate webhook_url to prevent SSRF
+  if (webhook_url) {
+    let parsed: URL
+    try { parsed = new URL(webhook_url) } catch { return NextResponse.json({ error: 'رابط الـ webhook غير صحيح' }, { status: 400 }) }
+    if (!['http:', 'https:'].includes(parsed.protocol)) return NextResponse.json({ error: 'رابط الـ webhook يجب أن يبدأ بـ http أو https' }, { status: 400 })
+    const host = parsed.hostname.toLowerCase()
+    const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254', '::1']
+    if (blockedHosts.includes(host)) return NextResponse.json({ error: 'رابط الـ webhook غير مسموح به' }, { status: 400 })
+    const ipv4 = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)
+    if (ipv4) {
+      const [, a, b] = ipv4.map(Number)
+      if (a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)) {
+        return NextResponse.json({ error: 'رابط الـ webhook غير مسموح به' }, { status: 400 })
+      }
+    }
+  }
+
   // Check device limit
   const { data: subscription } = await supabase
     .from('subscriptions')

@@ -37,7 +37,7 @@ interface SystemSettings {
 }
 
 const defaultSettings: SystemSettings = {
-  platform_name: 'Tsab Bot',
+  platform_name: 'Sends Bot',
   platform_logo_url: '',
   og_image_url: '',
   contact_email: '',

@@ -124,7 +124,7 @@ export default function AutoReplyPage() {
   const fetchData = async () => {
     const supabase = createClient()
     const [r, d] = await Promise.all([
-      supabase.from('auto_replies').select('*').order('priority', { ascending: false }),
+      supabase.from('auto_replies').select('*').order('priority', { ascending: false }).limit(200),
       supabase.from('devices').select('id, name'),
     ])
     setReplies(r.data || [])

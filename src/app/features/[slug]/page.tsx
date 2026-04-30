@@ -138,7 +138,7 @@ const FEATURES: Record<string, {
   api: {
     ar: {
       title: 'REST API',
-      subtitle: 'ادمج Tsab Bot مع أي نظام لديك عبر API قوي',
+      subtitle: 'ادمج Sends Bot مع أي نظام لديك عبر API قوي',
       icon: <Code size={48} />,
       color: '#2563EB',
       bullets: [
@@ -158,7 +158,7 @@ const FEATURES: Record<string, {
     },
     en: {
       title: 'REST API',
-      subtitle: 'Integrate Tsab Bot with any system via a powerful API',
+      subtitle: 'Integrate Sends Bot with any system via a powerful API',
       icon: <Code size={48} />,
       color: '#2563EB',
       bullets: [

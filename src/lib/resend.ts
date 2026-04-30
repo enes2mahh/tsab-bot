@@ -1,5 +1,5 @@
 const RESEND_API_URL = 'https://api.resend.com/emails'
-const FROM = process.env.RESEND_FROM_EMAIL || `Tsab Bot <noreply@${process.env.RESEND_DOMAIN || 'tsab-bot.com'}>`
+const FROM = process.env.RESEND_FROM_EMAIL || `Sends Bot <noreply@${process.env.RESEND_DOMAIN || 'sendsbot.com'}>`
 
 interface SendEmailOptions {
   to: string | string[]
@@ -54,7 +54,7 @@ export function emailCampaignCompleted(opts: { name: string; sent: number; faile
           </div>
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/campaigns" style="display:block;text-align:center;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;text-decoration:none;padding:14px;border-radius:12px;font-weight:700;font-size:15px">عرض التقرير الكامل ←</a>
         </div>
-        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Tsab Bot — منصة التسويق عبر واتساب</div>
+        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Sends Bot — منصة التسويق عبر واتساب</div>
       </div>`,
   }
 }
@@ -74,14 +74,14 @@ export function emailSubscriptionExpiring(opts: { name: string; daysLeft: number
           <p style="font-size:14px;color:#94A3B8">جدّد الآن للاستمرار في إرسال الرسائل وإدارة حملاتك.</p>
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/plans" style="display:block;text-align:center;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;text-decoration:none;padding:14px;border-radius:12px;font-weight:700;font-size:15px;margin-top:20px">تجديد الاشتراك الآن ←</a>
         </div>
-        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Tsab Bot — منصة التسويق عبر واتساب</div>
+        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Sends Bot — منصة التسويق عبر واتساب</div>
       </div>`,
   }
 }
 
 export function emailPasswordReset(opts: { resetLink: string }) {
   return {
-    subject: '🔐 إعادة تعيين كلمة المرور — Tsab Bot',
+    subject: '🔐 إعادة تعيين كلمة المرور — Sends Bot',
     html: `
       <div dir="rtl" style="font-family:Tajawal,Arial,sans-serif;max-width:560px;margin:auto;background:#0F0F1A;color:#E2E8F0;border-radius:16px;overflow:hidden">
         <div style="background:linear-gradient(135deg,#7C3AED,#4F46E5);padding:40px;text-align:center">
@@ -89,7 +89,7 @@ export function emailPasswordReset(opts: { resetLink: string }) {
           <h1 style="margin:0;font-size:22px;color:#fff">إعادة تعيين كلمة المرور</h1>
         </div>
         <div style="padding:32px">
-          <p style="font-size:15px;color:#E2E8F0;line-height:1.8;margin-bottom:8px">تلقّينا طلباً لإعادة تعيين كلمة مرور حسابك في <strong>Tsab Bot</strong>.</p>
+          <p style="font-size:15px;color:#E2E8F0;line-height:1.8;margin-bottom:8px">تلقّينا طلباً لإعادة تعيين كلمة مرور حسابك في <strong>Sends Bot</strong>.</p>
           <p style="font-size:14px;color:#94A3B8;line-height:1.8;margin-bottom:28px">إذا لم تطلب ذلك، يمكنك تجاهل هذا البريد وستبقى كلمة مرورك كما هي.</p>
           <a href="${opts.resetLink}" style="display:block;text-align:center;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;text-decoration:none;padding:16px;border-radius:12px;font-weight:700;font-size:16px;margin-bottom:20px">
             تعيين كلمة مرور جديدة ←
@@ -102,19 +102,19 @@ export function emailPasswordReset(opts: { resetLink: string }) {
             <p style="margin:0;font-size:13px;color:#F59E0B">⏰ صلاحية الرابط: ساعة واحدة فقط</p>
           </div>
         </div>
-        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Tsab Bot — منصة التسويق عبر واتساب</div>
+        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Sends Bot — منصة التسويق عبر واتساب</div>
       </div>`,
   }
 }
 
 export function emailWelcome(opts: { name: string }) {
   return {
-    subject: '🎉 أهلاً بك في Tsab Bot!',
+    subject: '🎉 أهلاً بك في Sends Bot!',
     html: `
       <div dir="rtl" style="font-family:Tajawal,Arial,sans-serif;max-width:560px;margin:auto;background:#0F0F1A;color:#E2E8F0;border-radius:16px;overflow:hidden">
         <div style="background:linear-gradient(135deg,#7C3AED,#4F46E5);padding:40px;text-align:center">
           <div style="font-size:48px;margin-bottom:12px">⚡</div>
-          <h1 style="margin:0;font-size:24px;color:#fff">أهلاً بك في Tsab Bot</h1>
+          <h1 style="margin:0;font-size:24px;color:#fff">أهلاً بك في Sends Bot</h1>
         </div>
         <div style="padding:28px">
           <p style="font-size:15px;color:#E2E8F0;line-height:1.8">مرحباً <strong>${opts.name}</strong>! 🎉</p>
@@ -129,7 +129,7 @@ export function emailWelcome(opts: { name: string }) {
           </div>
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/home" style="display:block;text-align:center;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;text-decoration:none;padding:14px;border-radius:12px;font-weight:700;font-size:15px">ابدأ الآن ←</a>
         </div>
-        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Tsab Bot — منصة التسويق عبر واتساب</div>
+        <div style="padding:16px;text-align:center;font-size:11px;color:#475569">Sends Bot — منصة التسويق عبر واتساب</div>
       </div>`,
   }
 }

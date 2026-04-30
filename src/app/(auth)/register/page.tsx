@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Mail, Lock, User, Phone, Eye, EyeOff, Zap, AlertCircle, CheckCircle, MessageCircle, ArrowLeft } from 'lucide-react'
@@ -57,6 +57,10 @@ function RegisterForm() {
   const [verifiedToken, setVerifiedToken] = useState<string | null>(null)
   const [otpSkipped, setOtpSkipped] = useState(false)
   const [resendIn, setResendIn] = useState(0)
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Cleanup OTP countdown on unmount
+  useEffect(() => () => { if (countdownRef.current) clearInterval(countdownRef.current) }, [])
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,9 +96,10 @@ function RegisterForm() {
 
       setStep('otp')
       setResendIn(60)
-      const interval = setInterval(() => {
+      if (countdownRef.current) clearInterval(countdownRef.current)
+      countdownRef.current = setInterval(() => {
         setResendIn((s) => {
-          if (s <= 1) { clearInterval(interval); return 0 }
+          if (s <= 1) { clearInterval(countdownRef.current!); countdownRef.current = null; return 0 }
           return s - 1
         })
       }, 1000)

@@ -228,7 +228,7 @@ export default function HomePage() {
           مرحباً 👋
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          هذا ملخص نشاطك اليوم في منصة Tsab Bot
+          هذا ملخص نشاطك اليوم في منصة Sends Bot
         </p>
       </div>
 

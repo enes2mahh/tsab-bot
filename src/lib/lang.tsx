@@ -16,7 +16,7 @@ const LangContext = createContext<LangContextValue>({
   toggleLang: () => {},
 })
 
-const STORAGE_KEY = 'tsab_lang'
+const STORAGE_KEY = 'sends_lang'
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('ar')

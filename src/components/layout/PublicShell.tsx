@@ -45,7 +45,7 @@ const FOOTER = {
         { label: 'شروط الخدمة', href: '/terms' },
       ]},
     ],
-    copy: '© 2026 Tsab Bot. جميع الحقوق محفوظة.',
+    copy: '© 2026 Sends Bot. جميع الحقوق محفوظة.',
     subPrefix: 'صُنع بـ ❤️ بواسطة ',
     subName: 'أنس محمود',
     subHref: 'https://www.enes-elhovete.com/',
@@ -72,7 +72,7 @@ const FOOTER = {
         { label: 'Terms', href: '/terms' },
       ]},
     ],
-    copy: '© 2026 Tsab Bot. All rights reserved.',
+    copy: '© 2026 Sends Bot. All rights reserved.',
     subPrefix: 'Made with ❤️ by ',
     subName: 'Anas Mahmoud',
     subHref: 'https://www.enes-elhovete.com/',
@@ -104,7 +104,7 @@ export function PublicNavbar() {
       .then(({ data }) => setSettings(data?.settings || {}))
   }, [])
 
-  const platformName = settings.platform_name || 'Tsab Bot'
+  const platformName = settings.platform_name || 'Sends Bot'
 
   return (
     <nav style={{
@@ -212,7 +212,7 @@ export function PublicFooter() {
             <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Zap size={16} color="white" />
             </div>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{settings.platform_name || 'Tsab Bot'}</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{settings.platform_name || 'Sends Bot'}</span>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '260px', marginBottom: '16px' }}>{t.desc}</p>
 

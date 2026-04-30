@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function generateMetadata(): Promise<Metadata> {
   // Fetch dynamic platform branding from system_settings
-  let name = 'Tsab Bot'
+  let name = 'Sends Bot'
   let ogImage: string | undefined
   try {
     const supabase = await createClient()

@@ -60,26 +60,36 @@ function ContactForm({ onClose, onSaved, existing }: any) {
   )
 }
 
+const PAGE_SIZE = 100
+
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Contact | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
 
-  const fetchContacts = async () => {
-    const { data } = await createClient().from('contacts').select('*').order('created_at', { ascending: false })
+  const fetchContacts = async (p = page) => {
+    setLoading(true)
+    const { data, count } = await createClient()
+      .from('contacts')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(p * PAGE_SIZE, (p + 1) * PAGE_SIZE - 1)
     setContacts(data || [])
+    setTotalCount(count || 0)
     setLoading(false)
   }
 
-  useEffect(() => { fetchContacts() }, [])
+  useEffect(() => { fetchContacts(page) }, [page])
 
   const handleDelete = async (id: string) => {
     if (!confirm('حذف هذه الجهة؟')) return
     await createClient().from('contacts').delete().eq('id', id)
-    fetchContacts()
+    fetchContacts(page)
   }
 
   const handleExport = (format: ExportFormat) => {
@@ -94,7 +104,7 @@ export default function ContactsPage() {
         { header: 'الملاحظات', accessor: (c) => c.notes || '' },
         { header: 'تاريخ الإضافة', accessor: (c) => new Date(c.created_at).toLocaleDateString('en-CA') },
       ],
-      `tsab-contacts-${new Date().toISOString().slice(0, 10)}`,
+      `sends-contacts-${new Date().toISOString().slice(0, 10)}`,
       format,
     )
   }
@@ -128,7 +138,7 @@ export default function ContactsPage() {
     const data = await r.json()
     if (data.success) {
       alert(`✅ تم استيراد ${data.imported} جهة اتصال جديدة من ${data.total || 0}`)
-      fetchContacts()
+      fetchContacts(0); setPage(0)
     } else {
       alert(data.error || 'فشل الاستيراد')
     }
@@ -145,7 +155,7 @@ export default function ContactsPage() {
     const data = await r.json()
     if (data.success) {
       alert(`✅ تم استيراد ${data.imported} جهة اتصال من دليل الهاتف (المجموع: ${data.total || 0})`)
-      fetchContacts()
+      fetchContacts(0); setPage(0)
     } else {
       alert(data.error || 'فشل استيراد دليل الهاتف')
     }
@@ -193,7 +203,7 @@ export default function ContactsPage() {
         return { user_id: user.id, phone, name, email, tags }
       }).filter(c => c.phone && c.phone.length >= 8)
 
-      if (toInsert.length) { await supabase.from('contacts').upsert(toInsert, { onConflict: 'user_id,phone' }); fetchContacts() }
+      if (toInsert.length) { await supabase.from('contacts').upsert(toInsert, { onConflict: 'user_id,phone' }); fetchContacts(0); setPage(0) }
       alert(`✅ تم استيراد ${toInsert.length} جهة اتصال`)
     }
     reader.readAsText(file)
@@ -281,7 +291,32 @@ export default function ContactsPage() {
           </div>
         )}
       </div>
-      {showForm && <ContactForm onClose={() => setShowForm(false)} onSaved={fetchContacts} existing={editItem} />}
+      {/* Pagination */}
+      {totalCount > PAGE_SIZE && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '16px', direction: 'ltr' }}>
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="btn-cosmic"
+            style={{ padding: '6px 16px', opacity: page === 0 ? 0.4 : 1 }}
+          >
+            ‹
+          </button>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+            {page + 1} / {Math.ceil(totalCount / PAGE_SIZE)}
+            <span style={{ marginRight: '8px', color: 'var(--text-muted)' }}>({totalCount} جهة)</span>
+          </span>
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={(page + 1) * PAGE_SIZE >= totalCount}
+            className="btn-cosmic"
+            style={{ padding: '6px 16px', opacity: (page + 1) * PAGE_SIZE >= totalCount ? 0.4 : 1 }}
+          >
+            ›
+          </button>
+        </div>
+      )}
+      {showForm && <ContactForm onClose={() => setShowForm(false)} onSaved={() => { fetchContacts(0); setPage(0) }} existing={editItem} />}
     </div>
   )
 }

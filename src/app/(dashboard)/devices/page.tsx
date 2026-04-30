@@ -75,7 +75,7 @@ function QRModal({ deviceId, onClose, onConnected }: { deviceId: string; onClose
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => { channel.unsubscribe(); supabase.removeChannel(channel) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
 
@@ -439,7 +439,7 @@ export default function DevicesPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'devices' }, fetchDevices)
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => { channel.unsubscribe(); supabase.removeChannel(channel) }
   }, [])
 
   const handleDeviceAdded = (deviceId: string) => {

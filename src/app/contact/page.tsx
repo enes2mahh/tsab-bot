@@ -13,7 +13,7 @@ const T = {
     subject: 'الموضوع', message: 'رسالتك', send: 'إرسال الرسالة', sending: 'جاري الإرسال...',
     success: '✅ تم استلام رسالتك! سنتواصل معك قريباً.',
     cards: [
-      { icon: '📧', title: 'البريد الإلكتروني', value: 'support@tsab-bot.com' },
+      { icon: '📧', title: 'البريد الإلكتروني', value: 'support@sendsbot.com' },
       { icon: '⏱️', title: 'وقت الرد', value: 'خلال 24 ساعة عمل' },
       { icon: '🌍', title: 'اللغات', value: 'العربية والإنجليزية' },
     ],
@@ -27,7 +27,7 @@ const T = {
     subject: 'Subject', message: 'Your Message', send: 'Send Message', sending: 'Sending...',
     success: '✅ Message received! We will contact you shortly.',
     cards: [
-      { icon: '📧', title: 'Email', value: 'support@tsab-bot.com' },
+      { icon: '📧', title: 'Email', value: 'support@sendsbot.com' },
       { icon: '⏱️', title: 'Response Time', value: 'Within 24 business hours' },
       { icon: '🌍', title: 'Languages', value: 'Arabic & English' },
     ],

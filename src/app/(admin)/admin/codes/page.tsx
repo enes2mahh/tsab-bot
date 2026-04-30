@@ -16,7 +16,7 @@ function CodeForm({ plans, onClose, onSaved }: any) {
   const handleCreate = async () => {
     setLoading(true)
     const supabase = createClient()
-    const code = 'TSAB' + Math.random().toString(36).slice(2, 8).toUpperCase()
+    const code = 'SENDS' + Math.random().toString(36).slice(2, 8).toUpperCase()
     await supabase.from('activation_codes').insert({
       code, ...form, expires_at: form.expires_at || null,
       duration_days: form.duration_days || null, uses_count: 0, is_active: true,

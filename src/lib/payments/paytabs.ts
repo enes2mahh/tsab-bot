@@ -7,7 +7,7 @@
 //     headers: { 'Authorization': process.env.PAYTABS_SERVER_KEY!, 'Content-Type': 'application/json' },
 //     body: JSON.stringify({
 //       profile_id: process.env.PAYTABS_PROFILE_ID, tran_type: 'sale', tran_class: 'ecom',
-//       cart_id: params.order_id, cart_description: 'Tsab Bot Subscription', cart_currency: params.currency, cart_amount: params.amount,
+//       cart_id: params.order_id, cart_description: 'Sends Bot Subscription', cart_currency: params.currency, cart_amount: params.amount,
 //       customer_details: params.customer, return: params.return_url, callback: params.callback_url,
 //     }),
 //   })

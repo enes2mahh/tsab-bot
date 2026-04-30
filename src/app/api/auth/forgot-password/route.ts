@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tsab-bot.vercel.app'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sendsbot.com'
 
     // Generate recovery link via admin API
     const { data, error } = await supabase.auth.admin.generateLink({

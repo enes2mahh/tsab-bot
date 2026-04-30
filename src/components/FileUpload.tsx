@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import NextImage from 'next/image'
 import { Upload, Link2, X, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -176,7 +177,7 @@ export function FileUpload({
       {value && preview && (
         <div style={{ marginTop: '10px', padding: '10px', background: 'var(--bg-secondary)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           {isImage ? (
-            <img src={value} alt="preview" style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+            <NextImage src={value} alt="preview" width={48} height={48} style={{ borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} unoptimized onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
           ) : (
             <ImageIcon size={32} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           )}

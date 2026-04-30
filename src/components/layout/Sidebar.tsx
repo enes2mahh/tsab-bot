@@ -92,7 +92,7 @@ export function Sidebar({ onCollapse, mobileOpen = false }: SidebarProps) {
         {!collapsed && (
           <div>
             <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-primary)' }}>
-              Tsab Bot
+              Sends Bot
             </div>
             <div style={{ fontSize: '11px', color: 'var(--accent-violet-light)' }}>
               WhatsApp Platform

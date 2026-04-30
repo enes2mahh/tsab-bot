@@ -33,7 +33,7 @@ const T = {
       { title: 'الشركة', links: [{ label: 'من نحن', href: '/about' }, { label: 'المدونة', href: '#' }, { label: 'الشركاء', href: '#' }, { label: 'التوظيف', href: '#' }] },
       { title: 'الدعم', links: [{ label: 'مركز المساعدة', href: '#' }, { label: 'تواصل معنا', href: '#contact' }, { label: 'سياسة الخصوصية', href: '/privacy' }, { label: 'شروط الخدمة', href: '/terms' }] },
     ],
-    footerCopy: '© 2026 Tsab Bot. جميع الحقوق محفوظة.',
+    footerCopy: '© 2026 Sends Bot. جميع الحقوق محفوظة.',
     footerSubPrefix: 'صُنع بـ ❤️ بواسطة ',
     footerSubName: 'أنس محمود',
     footerSubHref: 'https://www.enes-elhovete.com/',
@@ -65,7 +65,7 @@ const T = {
       { title: 'Company', links: [{ label: 'About Us', href: '/about' }, { label: 'Blog', href: '#' }, { label: 'Partners', href: '#' }, { label: 'Careers', href: '#' }] },
       { title: 'Support', links: [{ label: 'Help Center', href: '#' }, { label: 'Contact Us', href: '#contact' }, { label: 'Privacy Policy', href: '/privacy' }, { label: 'Terms of Service', href: '/terms' }] },
     ],
-    footerCopy: '© 2026 Tsab Bot. All rights reserved.',
+    footerCopy: '© 2026 Sends Bot. All rights reserved.',
     footerSubPrefix: 'Made with ❤️ by ',
     footerSubName: 'Anas Mahmoud',
     footerSubHref: 'https://www.enes-elhovete.com/',
@@ -141,7 +141,7 @@ function Navbar() {
           <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={18} color="white" />
           </div>
-          <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
+          <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Sends Bot</span>
         </div>
 
         {/* Desktop nav links */}
@@ -371,7 +371,7 @@ function Footer() {
               <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Zap size={16} color="white" />
               </div>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Sends Bot</span>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '260px' }}>{t.footerDesc}</p>
           </div>

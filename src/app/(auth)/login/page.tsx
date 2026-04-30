@@ -86,7 +86,7 @@ export default function LoginPage() {
             <Zap size={28} color="white" />
           </div>
           <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
-            أهلاً بك في Tsab Bot
+            أهلاً بك في Sends Bot
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
             سجّل دخولك للمتابعة

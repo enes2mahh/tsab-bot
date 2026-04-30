@@ -48,8 +48,12 @@ const SOURCE_LABELS: Record<string, string> = {
   campaign: 'حملة',
 }
 
+const ADMIN_PAGE_SIZE = 100
+
 export default function AdminAllContactsPage() {
   const [contacts, setContacts] = useState<ContactRow[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
@@ -58,16 +62,18 @@ export default function AdminAllContactsPage() {
   const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
+    setLoading(true)
     createClient()
       .from('contacts')
-      .select('*, profiles(name, email)')
+      .select('*, profiles(name, email)', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .limit(2000)
-      .then(({ data }) => {
+      .range(page * ADMIN_PAGE_SIZE, (page + 1) * ADMIN_PAGE_SIZE - 1)
+      .then(({ data, count }) => {
         setContacts((data || []) as any)
+        setTotalCount(count || 0)
         setLoading(false)
       })
-  }, [])
+  }, [page])
 
   const filtered = contacts.filter((c) => {
     if (filterCountry && c.country_code !== filterCountry) return false
@@ -199,7 +205,7 @@ export default function AdminAllContactsPage() {
               <tr><th>الاسم</th><th>الهاتف</th><th>الدولة</th><th>المالك</th><th>المصدر</th><th>التاريخ</th></tr>
             </thead>
             <tbody>
-              {filtered.slice(0, 500).map((c) => (
+              {filtered.map((c) => (
                 <tr key={c.id}>
                   <td style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{c.name || '—'}</td>
                   <td style={{ fontSize: '13px', direction: 'ltr', textAlign: 'right' }}>
@@ -218,9 +224,14 @@ export default function AdminAllContactsPage() {
           </table>
           </div>
         )}
-        {filtered.length > 500 && (
-          <div style={{ padding: '14px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}>
-            معروض 500 من {filtered.length} — استخدم الفلاتر للتضييق أو صدّر للحصول على الكل
+        {totalCount > ADMIN_PAGE_SIZE && (
+          <div style={{ padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', borderTop: '1px solid var(--border)', direction: 'ltr' }}>
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="btn-cosmic" style={{ padding: '5px 14px', opacity: page === 0 ? 0.4 : 1 }}>‹</button>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+              {page + 1} / {Math.ceil(totalCount / ADMIN_PAGE_SIZE)}
+              <span style={{ marginRight: '8px', color: 'var(--text-muted)' }}>({totalCount.toLocaleString()} جهة)</span>
+            </span>
+            <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * ADMIN_PAGE_SIZE >= totalCount} className="btn-cosmic" style={{ padding: '5px 14px', opacity: (page + 1) * ADMIN_PAGE_SIZE >= totalCount ? 0.4 : 1 }}>›</button>
           </div>
         )}
       </div>

@@ -216,7 +216,7 @@ function CampaignBuilder({ onClose, onCreated }: { onClose: () => void; onCreate
     try {
       const waUrl = process.env.NEXT_PUBLIC_WA_SERVER_URL
       const res = await fetch(`${waUrl}/devices/${deviceId}/groups`, {
-        headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_WA_SERVER_SECRET || 'tsab-bot-super-secret-key-2024-railway'}` }
+        headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_WA_SERVER_SECRET || 'sends-bot-super-secret-key-2024-railway'}` }
       })
       const data = await res.json()
       setGroups(data.groups || [])

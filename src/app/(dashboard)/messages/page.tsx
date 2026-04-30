@@ -103,7 +103,7 @@ export default function MessagesPage() {
         { header: 'Source', accessor: (m) => m.metadata?.source || '' },
         { header: 'Date', accessor: (m) => new Date(m.created_at).toISOString() },
       ],
-      `tsab-messages-${new Date().toISOString().slice(0, 10)}`,
+      `sends-messages-${new Date().toISOString().slice(0, 10)}`,
       format,
     )
   }

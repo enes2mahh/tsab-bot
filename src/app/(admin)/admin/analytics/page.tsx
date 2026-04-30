@@ -49,19 +49,19 @@ export default function AdminAnalyticsPage() {
 
     setLoading(true)
     Promise.all([
-      supabase.from('profiles').select('id, created_at', { count: 'exact' }),
-      supabase.from('profiles').select('id', { count: 'exact' }).gte('created_at', fromISO),
-      supabase.from('devices').select('id, status', { count: 'exact' }),
-      supabase.from('messages').select('id', { count: 'exact' }).gte('created_at', fromISO),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', fromISO),
+      supabase.from('devices').select('id', { count: 'exact', head: true }).eq('status', 'connected'),
+      supabase.from('messages').select('id', { count: 'exact', head: true }).gte('created_at', fromISO),
       supabase.from('subscriptions').select('plans(name_ar, price), status').in('status', ['active', 'trial']),
       supabase.from('profiles').select('id, name, email, created_at').order('created_at', { ascending: false }).limit(10),
-    ]).then(([allUsers, newUsers, allDevices, messages, subs, recentUsers]) => {
+    ]).then(([allUsers, newUsers, activeDevicesCount, messages, subs, recentUsers]) => {
       const revenue = (subs.data || []).reduce((s: number, r: any) => s + (r.plans?.price || 0), 0)
 
       setMetrics({
         totalUsers: allUsers.count || 0,
         newUsers: newUsers.count || 0,
-        activeDevices: (allDevices.data || []).filter((d: any) => d.status === 'connected').length,
+        activeDevices: activeDevicesCount.count || 0,
         totalMessages: messages.count || 0,
         revenue,
         activeSubs: (subs.data || []).length,
@@ -74,10 +74,8 @@ export default function AdminAnalyticsPage() {
       })
       setPlanDist(Object.entries(planCounts).map(([name, value]) => ({ name, value })))
 
-      const statusCounts: Record<string, number> = {}
-      ;(allDevices.data || []).forEach((d: any) => {
-        statusCounts[d.status] = (statusCounts[d.status] || 0) + 1
-      })
+      const connectedCount = activeDevicesCount.count || 0
+      const statusCounts: Record<string, number> = { connected: connectedCount }
       setDeviceStatus(Object.entries(statusCounts).map(([name, value]) => ({
         name: name === 'connected' ? 'متصل' : name === 'disconnected' ? 'غير متصل' : name === 'banned' ? 'محظور' : name,
         value

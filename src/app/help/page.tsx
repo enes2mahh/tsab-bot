@@ -9,13 +9,13 @@ import Link from 'next/link'
 const T = {
   ar: {
     title: 'مركز المساعدة',
-    subtitle: 'كل اللي تحتاج تعرفه عن استخدام Tsab Bot',
+    subtitle: 'كل اللي تحتاج تعرفه عن استخدام Sends Bot',
     search: 'ابحث في الأسئلة الشائعة...',
     contactCta: 'لم تجد إجابتك؟',
     contactBtn: 'تواصل معنا',
     cats: [
       { id: 'getting-started', icon: <BookOpen size={20} />, title: 'البدء', color: '#7C3AED', items: [
-        { q: 'كيف أبدأ مع Tsab Bot؟', a: 'سجّل حساب جديد من /register، فعّل التجربة المجانية (3-7 أيام حسب الخطة)، اربط جهاز واتساب من صفحة الأجهزة بمسح QR، وابدأ.' },
+        { q: 'كيف أبدأ مع Sends Bot؟', a: 'سجّل حساب جديد من /register، فعّل التجربة المجانية (3-7 أيام حسب الخطة)، اربط جهاز واتساب من صفحة الأجهزة بمسح QR، وابدأ.' },
         { q: 'هل أحتاج بطاقة ائتمان للتجربة؟', a: 'لا، التجربة مجانية بالكامل بدون بطاقة. تستطيع الدفع لاحقاً عبر كود تفعيل أو رابط دفع.' },
         { q: 'كم جهاز يمكنني ربط؟', a: 'يعتمد على خطتك: الأساسية 1 جهاز، الاحترافية 3 أجهزة، الأعمال 10 أجهزة.' },
       ]},
@@ -48,7 +48,7 @@ const T = {
   },
   en: {
     title: 'Help Center',
-    subtitle: 'Everything you need to know about Tsab Bot',
+    subtitle: 'Everything you need to know about Sends Bot',
     search: 'Search frequently asked questions...',
     contactCta: "Didn't find your answer?",
     contactBtn: 'Contact Us',

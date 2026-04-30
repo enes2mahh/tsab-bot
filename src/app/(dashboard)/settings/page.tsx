@@ -213,7 +213,7 @@ export default function SettingsPage() {
   const regenerateApiKey = async () => {
     if (!confirm('تجديد مفتاح API سيُبطل المفتاح القديم. متأكد؟')) return
     setLoading(true)
-    const newKey = 'tsab_' + Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(16).padStart(2, '0')).join('')
+    const newKey = 'sends_' + Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(16).padStart(2, '0')).join('')
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (user) { await supabase.from('profiles').update({ api_key: newKey }).eq('id', user.id); setApiKey(newKey) }
@@ -406,7 +406,7 @@ export default function SettingsPage() {
           {tab === 'api' && (
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>API & Webhook</h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>اربط تطبيقاتك الخارجية بمنصة Tsab Bot.</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>اربط تطبيقاتك الخارجية بمنصة Sends Bot.</p>
 
               {/* API Key */}
               <div style={{ marginBottom: '28px' }}>

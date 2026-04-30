@@ -114,10 +114,10 @@ export default function ReferralsPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-            <a href={`https://wa.me/?text=${encodeURIComponent('انضم لـ Tsab Bot ' + data.referralLink)}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '10px', background: '#25D366', borderRadius: '10px', color: 'white', textDecoration: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600 }}>
+            <a href={`https://wa.me/?text=${encodeURIComponent('انضم لـ Sends Bot ' + data.referralLink)}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '10px', background: '#25D366', borderRadius: '10px', color: 'white', textDecoration: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600 }}>
               📱 واتساب
             </a>
-            <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('جرب Tsab Bot ' + data.referralLink)}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '10px', background: '#1DA1F2', borderRadius: '10px', color: 'white', textDecoration: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600 }}>
+            <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('جرب Sends Bot ' + data.referralLink)}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '10px', background: '#1DA1F2', borderRadius: '10px', color: 'white', textDecoration: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600 }}>
               🐦 تويتر
             </a>
           </div>

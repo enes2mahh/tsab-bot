@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupaClient } from '@supabase/supabase-js'
+import { getClientIp, checkRateLimit } from '@/lib/rate-limit'
 
 // POST /api/auth/verify-otp
 // Body: { phone: string, code: string }
@@ -7,6 +8,12 @@ import { createClient as createSupaClient } from '@supabase/supabase-js'
 // the client uses to actually create the auth.users row in the next step.
 export async function POST(req: NextRequest) {
   try {
+    // IP-based rate limit: max 20 verify attempts per IP per hour
+    const ip = getClientIp(req)
+    if (!checkRateLimit(`otp-verify:${ip}`, 20, 60 * 60 * 1000)) {
+      return NextResponse.json({ error: 'تجاوزت الحد المسموح. حاول لاحقاً.' }, { status: 429 })
+    }
+
     const { phone: rawPhone, code } = await req.json()
     if (!rawPhone || !code) {
       return NextResponse.json({ error: 'الهاتف والرمز مطلوبان' }, { status: 400 })

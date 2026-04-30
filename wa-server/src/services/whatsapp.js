@@ -92,6 +92,84 @@ const qrWaiters = new Map()         // deviceId -> [resolveFn]
 const campaignQueue = []
 let campaignWorkerRunning = false
 
+// ===== System Prompt Cache (per device, 5 min TTL) =====
+const promptCache = new Map() // deviceId -> { prompt, builtAt }
+const PROMPT_TTL_MS = 5 * 60 * 1000
+
+function getCachedPrompt(deviceId) {
+  const entry = promptCache.get(deviceId)
+  if (entry && Date.now() - entry.builtAt < PROMPT_TTL_MS) return entry.prompt
+  return null
+}
+function setCachedPrompt(deviceId, prompt) {
+  promptCache.set(deviceId, { prompt, builtAt: Date.now() })
+}
+function invalidatePromptCache(deviceId) {
+  promptCache.delete(deviceId)
+}
+module.exports.invalidatePromptCache = invalidatePromptCache
+
+// ===== Gemini Rate Limiter Queue (max 55 req/min) =====
+const geminiQueue = []
+let geminiCallsThisMinute = 0
+let geminiWindowStart = Date.now()
+let geminiWorkerRunning = false
+
+function callGeminiQueued(params) {
+  return new Promise((resolve, reject) => {
+    geminiQueue.push({ params, resolve, reject })
+    if (!geminiWorkerRunning) processGeminiQueue()
+  })
+}
+
+async function processGeminiQueue() {
+  if (geminiQueue.length === 0) { geminiWorkerRunning = false; return }
+  geminiWorkerRunning = true
+
+  const now = Date.now()
+  if (now - geminiWindowStart > 60000) {
+    geminiCallsThisMinute = 0
+    geminiWindowStart = now
+  }
+
+  if (geminiCallsThisMinute >= 55) {
+    const waitMs = 60000 - (now - geminiWindowStart) + 200
+    setTimeout(processGeminiQueue, waitMs)
+    return
+  }
+
+  const { params, resolve, reject } = geminiQueue.shift()
+  geminiCallsThisMinute++
+
+  try {
+    const fn = params.legacy ? callGeminiRESTLegacy : callGeminiREST
+    resolve(await fn(params))
+  } catch (e) {
+    reject(e)
+  }
+
+  setImmediate(processGeminiQueue)
+}
+
+// ===== Per-Device Message Queue (prevent concurrent processing) =====
+const deviceMessageQueues = new Map() // deviceId -> task[]
+
+async function enqueueMessageTask(deviceId, task) {
+  if (!deviceMessageQueues.has(deviceId)) deviceMessageQueues.set(deviceId, [])
+  const q = deviceMessageQueues.get(deviceId)
+  q.push(task)
+  if (q.length === 1) processDeviceQueue(deviceId)
+}
+
+async function processDeviceQueue(deviceId) {
+  const q = deviceMessageQueues.get(deviceId)
+  if (!q || q.length === 0) { deviceMessageQueues.delete(deviceId); return }
+  try { await q[0]() } catch (e) { console.error(`[queue] ${deviceId} task error:`, e.message) }
+  q.shift()
+  if (q.length > 0) setImmediate(() => processDeviceQueue(deviceId))
+  else deviceMessageQueues.delete(deviceId)
+}
+
 class WhatsAppService {
   // ========== INIT (with concurrent protection) ==========
   async initDevice(deviceId, userId = null) {
@@ -153,7 +231,7 @@ class WhatsAppService {
       version,
       logger,
       printQRInTerminal: false,
-      browser: ['Tsab Bot', 'Chrome', '1.0.0'],
+      browser: ['Sends Bot', 'Chrome', '1.0.0'],
       auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -713,7 +791,11 @@ class WhatsAppService {
         .eq('user_id', userId)
         .single()
 
-      let systemPrompt =
+      // Use cached system prompt if still fresh (saves ~70% of tokens)
+      let systemPrompt = getCachedPrompt(deviceId)
+
+      if (!systemPrompt) {
+      systemPrompt =
         device.ai_prompt ||
         settings?.settings?.default_system_prompt ||
         'أنت مساعد ذكي ومحترف لخدمة العملاء. أجب باللغة التي يكتب بها العميل، بشكل ودود ومختصر.'
@@ -748,6 +830,9 @@ class WhatsAppService {
 
         systemPrompt = contextParts.join('\n')
       }
+
+      setCachedPrompt(deviceId, systemPrompt)
+      } // end if (!cached)
 
       // === On first AI call ever, list available models for diagnostics ===
       try {
@@ -1038,6 +1123,10 @@ class WhatsAppService {
         console.error('[stories worker] error:', err.message)
       }
     }, 60_000) // every 60 seconds
+  }
+
+  getSessionCount() {
+    return sessions.size
   }
 }
 

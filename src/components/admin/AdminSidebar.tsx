@@ -115,7 +115,7 @@ export function AdminSidebar() {
           {!collapsed && (
             <div style={{ overflow: 'hidden' }}>
               <div style={{ fontSize: '14px', fontWeight: 700, color: '#EF4444', whiteSpace: 'nowrap' }}>لوحة الإدارة</div>
-              <div style={{ fontSize: '11px', color: 'rgba(239,68,68,0.6)', whiteSpace: 'nowrap' }}>Tsab Bot Admin</div>
+              <div style={{ fontSize: '11px', color: 'rgba(239,68,68,0.6)', whiteSpace: 'nowrap' }}>Sends Bot Admin</div>
             </div>
           )}
         </div>

@@ -13,7 +13,7 @@ const ENDPOINTS = [
   "to": "966500000000",
   "message": "مرحباً!"
 }`,
-    curl: `curl -X POST https://tsab-bot.vercel.app/api/messages/send \\
+    curl: `curl -X POST https://sendsbot.com/api/messages/send \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"deviceId":"device-id","to":"966500000000","message":"مرحباً!"}'`,
@@ -38,7 +38,7 @@ const data = await res.json()`,
     path: '/api/devices',
     desc: 'جلب قائمة أجهزتك المتصلة',
     body: null,
-    curl: `curl https://tsab-bot.vercel.app/api/devices \\
+    curl: `curl https://sendsbot.com/api/devices \\
   -H "Authorization: Bearer YOUR_API_KEY"`,
     js: `const res = await fetch('/api/devices', {
   headers: { 'Authorization': 'Bearer YOUR_API_KEY' }
@@ -65,7 +65,7 @@ const devices = await res.json()`,
   "delay_min": 5,
   "delay_max": 10
 }`,
-    curl: `curl -X POST https://tsab-bot.vercel.app/api/campaigns \\
+    curl: `curl -X POST https://sendsbot.com/api/campaigns \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"name":"حملة رمضان","device_id":"id","recipients":[{"phone":"966500000000"}]}'`,
@@ -85,7 +85,7 @@ const devices = await res.json()`,
     path: '/api/campaigns',
     desc: 'جلب كل حملاتك',
     body: null,
-    curl: `curl https://tsab-bot.vercel.app/api/campaigns \\
+    curl: `curl https://sendsbot.com/api/campaigns \\
   -H "Authorization: Bearer YOUR_API_KEY"`,
     js: `const res = await fetch('/api/campaigns', {
   headers: { 'Authorization': 'Bearer YOUR_API_KEY' }
@@ -131,7 +131,7 @@ export default function ApiPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://tsab-bot.vercel.app'
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://sendsbot.com'
 
   return (
     <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto' }}>
@@ -139,7 +139,7 @@ export default function ApiPage() {
         <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Code size={24} color="var(--accent-violet)" /> توثيق API
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>ادمج Tsab Bot في تطبيقاتك بسهولة</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>ادمج Sends Bot في تطبيقاتك بسهولة</p>
       </div>
 
       {/* Base URL */}

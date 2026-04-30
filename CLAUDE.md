@@ -1,4 +1,4 @@
-# Tsab Bot — دليل Claude الشامل
+# Sends Bot — دليل Claude الشامل
 
 منصة SaaS لأتمتة واتساب بالذكاء الاصطناعي. Next.js 16 + Supabase + Baileys (WA server على Railway).
 
@@ -31,12 +31,12 @@ NEXT_PUBLIC_SUPABASE_URL=https://bvhsqmlohxcjxcxbssdp.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...          # للعمليات الإدارية فقط (server-side)
 GEMINI_API_KEY=AIzaSy...
-NEXT_PUBLIC_WA_SERVER_URL=https://tsab-bot-production.up.railway.app
-WA_SERVER_SECRET=tsab-bot-super-secret-key-2024-railway
-NEXT_PUBLIC_APP_URL=https://tsab-bot.vercel.app
-NEXT_PUBLIC_APP_NAME=Tsab Bot
+NEXT_PUBLIC_WA_SERVER_URL=https://sends-bot-production.up.railway.app
+WA_SERVER_SECRET=sends-bot-super-secret-key-2024-railway
+NEXT_PUBLIC_APP_URL=https://sends-bot.vercel.app
+NEXT_PUBLIC_APP_NAME=Sends Bot
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=Tsab Bot <onboarding@resend.dev>   # ⚠️ test فقط
+RESEND_FROM_EMAIL=Sends Bot <onboarding@resend.dev>   # ⚠️ test فقط
 RESEND_DOMAIN=resend.dev
 ```
 
@@ -301,8 +301,8 @@ const supabase = createSupaClient(url, serviceKey, { auth: { persistSession: fal
 
 | الخدمة | الاستخدام | الرابط |
 |--------|----------|--------|
-| Vercel | Next.js frontend | tsab-bot.vercel.app |
-| Railway | WA Server (Baileys) | tsab-bot-production.up.railway.app |
+| Vercel | Next.js frontend | sends-bot.vercel.app |
+| Railway | WA Server (Baileys) | sends-bot-production.up.railway.app |
 | Supabase | DB + Auth + Storage | bvhsqmlohxcjxcxbssdp.supabase.co |
 | Resend | Email delivery | resend.com |
-| GitHub | Source code | github.com/enes2mahh/tsab-bot |
+| GitHub | Source code | github.com/enes2mahh/sends-bot |

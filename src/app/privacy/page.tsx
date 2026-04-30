@@ -4,8 +4,8 @@ import { StarField } from '@/components/cosmic/StarField'
 import { Zap } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'سياسة الخصوصية | Tsab Bot',
-  description: 'سياسة الخصوصية وحماية البيانات لمنصة Tsab Bot',
+  title: 'سياسة الخصوصية | Sends Bot',
+  description: 'سياسة الخصوصية وحماية البيانات لمنصة Sends Bot',
 }
 
 export default function PrivacyPage() {
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
               <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Zap size={18} color="white" />
               </div>
-              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Tsab Bot</span>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Sends Bot</span>
             </Link>
             <Link href="/" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>← العودة للرئيسية</Link>
           </div>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             {[
               {
                 title: '1. المعلومات التي نجمعها',
-                content: `نجمع المعلومات التالية عند استخدامك لمنصة Tsab Bot:
+                content: `نجمع المعلومات التالية عند استخدامك لمنصة Sends Bot:
 • معلومات الحساب: الاسم، البريد الإلكتروني، رقم الهاتف
 • معلومات الاستخدام: بيانات الأجهزة المربوطة، الرسائل المرسلة، سجلات النشاط
 • معلومات الدفع: يتم معالجتها بشكل آمن عبر معالجات الدفع المعتمدة ولا نخزن بيانات بطاقتك
@@ -95,7 +95,7 @@ export default function PrivacyPage() {
               {
                 title: '9. تواصل معنا',
                 content: `لأي استفسار عن الخصوصية:
-📧 البريد: privacy@tsab-bot.com
+📧 البريد: privacy@sendsbot.com
 📍 يمكنك أيضاً فتح تذكرة دعم من داخل المنصة`,
               },
             ].map(section => (
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
             {[
               {
                 title: '1. Information We Collect',
-                content: `We collect the following information when you use Tsab Bot:
+                content: `We collect the following information when you use Sends Bot:
 • Account info: name, email address, phone number
 • Usage data: connected devices, messages sent, activity logs
 • Payment info: processed securely via certified payment gateways — we do not store card details
@@ -170,7 +170,7 @@ You can control cookies through your browser settings.`,
               {
                 title: '7. Contact Us',
                 content: `For any privacy inquiries:
-📧 Email: privacy@tsab-bot.com
+📧 Email: privacy@sendsbot.com
 📍 You can also open a support ticket from within the platform`,
               },
             ].map(section => (
@@ -189,7 +189,7 @@ You can control cookies through your browser settings.`,
 
         {/* Footer */}
         <div style={{ borderTop: '1px solid var(--border)', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-          <Link href="/" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>Tsab Bot</Link> — جميع الحقوق محفوظة © 2026
+          <Link href="/" style={{ color: 'var(--accent-violet-light)', textDecoration: 'none' }}>Sends Bot</Link> — جميع الحقوق محفوظة © 2026
         </div>
       </div>
     </div>

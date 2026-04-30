@@ -5,7 +5,7 @@ import { FloatingOrbs } from '@/components/cosmic/FloatingOrbs'
 import { LandingContent } from '@/components/landing/LandingContent'
 
 export const metadata: Metadata = {
-  title: 'Tsab Bot - أتمتة واتساب بقوة الذكاء الاصطناعي',
+  title: 'Sends Bot - أتمتة واتساب بقوة الذكاء الاصطناعي',
   description: 'منصة متكاملة لإدارة بوتات الواتساب مع ردود ذكية فورية. ابدأ مجاناً لمدة 7 أيام.',
   keywords: 'واتساب بوت، أتمتة واتساب، بوت واتساب، ذكاء اصطناعي، Gemini AI',
 }

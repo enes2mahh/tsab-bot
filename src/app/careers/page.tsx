@@ -24,7 +24,7 @@ const T = {
   ar: {
     title: 'انضم لفريقنا',
     subtitle: 'نحن نبني مستقبل أتمتة واتساب في العالم العربي. كن جزءاً من القصة.',
-    perksTitle: 'لماذا Tsab Bot؟',
+    perksTitle: 'لماذا Sends Bot؟',
     perks: [
       { icon: '🚀', title: 'بيئة عمل ديناميكية', desc: 'فريق صغير، قرارات سريعة، تعلّم مستمر' },
       { icon: '🌍', title: 'عمل عن بُعد', desc: 'اشتغل من أي مكان في العالم بساعات مرنة' },
@@ -36,7 +36,7 @@ const T = {
     applyTitle: 'استمارة التقديم',
     name: 'الاسم الكامل', email: 'البريد الإلكتروني', phone: 'رقم الهاتف',
     linkedin: 'رابط LinkedIn (اختياري)', portfolio: 'رابط Portfolio/CV',
-    cover: 'لماذا تريد الانضمام لـ Tsab Bot؟',
+    cover: 'لماذا تريد الانضمام لـ Sends Bot؟',
     submit: 'إرسال الطلب', submitting: 'جاري الإرسال...',
     success: '✅ تم استلام طلبك! سنراجعه ونتواصل معك خلال 7 أيام.',
     required: 'الرجاء تعبئة الحقول المطلوبة',
@@ -48,7 +48,7 @@ const T = {
   en: {
     title: 'Join Our Team',
     subtitle: "We're building the future of WhatsApp automation in the Arab world. Be part of the story.",
-    perksTitle: 'Why Tsab Bot?',
+    perksTitle: 'Why Sends Bot?',
     perks: [
       { icon: '🚀', title: 'Dynamic Environment', desc: 'Small team, fast decisions, continuous learning' },
       { icon: '🌍', title: 'Remote Work', desc: 'Work from anywhere with flexible hours' },
@@ -60,7 +60,7 @@ const T = {
     applyTitle: 'Application Form',
     name: 'Full Name', email: 'Email', phone: 'Phone',
     linkedin: 'LinkedIn URL (optional)', portfolio: 'Portfolio/CV URL',
-    cover: 'Why do you want to join Tsab Bot?',
+    cover: 'Why do you want to join Sends Bot?',
     submit: 'Submit Application', submitting: 'Submitting...',
     success: '✅ Application received! We will review and reply within 7 days.',
     required: 'Please fill required fields',
