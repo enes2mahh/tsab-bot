@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { TrendingUp, Users, MessageSquare, DollarSign, Smartphone, Calendar, Download } from 'lucide-react'
+import { TrendingUp, Users, MessageSquare, DollarSign, Smartphone, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -52,16 +52,20 @@ export default function AdminAnalyticsPage() {
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
       supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', fromISO),
       supabase.from('devices').select('id', { count: 'exact', head: true }).eq('status', 'connected'),
+      supabase.from('devices').select('id', { count: 'exact', head: true }).eq('status', 'disconnected'),
+      supabase.from('devices').select('id', { count: 'exact', head: true }).eq('status', 'banned'),
       supabase.from('messages').select('id', { count: 'exact', head: true }).gte('created_at', fromISO),
       supabase.from('subscriptions').select('plans(name_ar, price), status').in('status', ['active', 'trial']),
       supabase.from('profiles').select('id, name, email, created_at').order('created_at', { ascending: false }).limit(10),
-    ]).then(([allUsers, newUsers, activeDevicesCount, messages, subs, recentUsers]) => {
+      supabase.from('profiles').select('created_at').gte('created_at', fromISO).order('created_at'),
+      supabase.from('messages').select('created_at').gte('created_at', fromISO).order('created_at'),
+    ]).then(([allUsers, newUsers, connectedDev, disconnectedDev, bannedDev, messages, subs, recentUsers, userDates, msgDates]) => {
       const revenue = (subs.data || []).reduce((s: number, r: any) => s + (r.plans?.price || 0), 0)
 
       setMetrics({
         totalUsers: allUsers.count || 0,
         newUsers: newUsers.count || 0,
-        activeDevices: activeDevicesCount.count || 0,
+        activeDevices: connectedDev.count || 0,
         totalMessages: messages.count || 0,
         revenue,
         activeSubs: (subs.data || []).length,
@@ -74,24 +78,40 @@ export default function AdminAnalyticsPage() {
       })
       setPlanDist(Object.entries(planCounts).map(([name, value]) => ({ name, value })))
 
-      const connectedCount = activeDevicesCount.count || 0
-      const statusCounts: Record<string, number> = { connected: connectedCount }
-      setDeviceStatus(Object.entries(statusCounts).map(([name, value]) => ({
-        name: name === 'connected' ? 'متصل' : name === 'disconnected' ? 'غير متصل' : name === 'banned' ? 'محظور' : name,
-        value
-      })))
+      const deviceStatuses = [
+        { name: 'متصل', value: connectedDev.count || 0 },
+        { name: 'غير متصل', value: disconnectedDev.count || 0 },
+        { name: 'محظور', value: bannedDev.count || 0 },
+      ].filter((s) => s.value > 0)
+      setDeviceStatus(deviceStatuses.length > 0 ? deviceStatuses : [{ name: 'لا توجد أجهزة', value: 0 }])
 
-      // Simulate trend data based on real user count
-      const total = allUsers.count || 0
-      const trend = Array.from({ length: days > 30 ? 12 : days }, (_, i) => {
+      // Build real trend data grouped by date
+      const bucketCount = days > 30 ? 12 : days
+      const buckets: string[] = []
+      for (let i = bucketCount - 1; i >= 0; i--) {
         const d = new Date()
-        d.setDate(d.getDate() - (days - i))
-        return {
-          date: d.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' }),
-          مستخدمون: Math.max(1, Math.round(total * (0.7 + i / (days * 2)) * (0.9 + Math.random() * 0.2))),
-          رسائل: Math.round(50 + i * 12 + Math.random() * 40),
-        }
+        d.setDate(d.getDate() - i)
+        buckets.push(d.toISOString().slice(0, 10))
+      }
+
+      const usersByDay: Record<string, number> = {}
+      ;(userDates.data || []).forEach((r: any) => {
+        const day = r.created_at?.slice(0, 10)
+        if (day) usersByDay[day] = (usersByDay[day] || 0) + 1
       })
+
+      const msgsByDay: Record<string, number> = {}
+      ;(msgDates.data || []).forEach((r: any) => {
+        const day = r.created_at?.slice(0, 10)
+        if (day) msgsByDay[day] = (msgsByDay[day] || 0) + 1
+      })
+
+      const trend = buckets.map((day) => ({
+        date: new Date(day).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' }),
+        مستخدمون: usersByDay[day] || 0,
+        رسائل: msgsByDay[day] || 0,
+      }))
+
       setRegistrationTrend(trend)
       setMessageTrend(trend)
       setTopUsers(recentUsers.data || [])
@@ -117,12 +137,12 @@ export default function AdminAnalyticsPage() {
 
       {/* Metrics */}
       <div className="grid-3" style={{ marginBottom: '24px' }}>
-        <MetricCard label="إجمالي المستخدمين" value={loading ? '...' : metrics.totalUsers.toLocaleString('ar')} sub="منذ الإطلاق" color="#7C3AED" icon={<Users size={18} />} change={12} />
-        <MetricCard label="مستخدمون جدد" value={loading ? '...' : metrics.newUsers.toLocaleString('ar')} sub={`آخر ${period === '7d' ? 7 : period === '30d' ? 30 : 90} يوم`} color="#10B981" icon={<TrendingUp size={18} />} change={8} />
+        <MetricCard label="إجمالي المستخدمين" value={loading ? '...' : metrics.totalUsers.toLocaleString('ar')} sub="منذ الإطلاق" color="#7C3AED" icon={<Users size={18} />} />
+        <MetricCard label="مستخدمون جدد" value={loading ? '...' : metrics.newUsers.toLocaleString('ar')} sub={`آخر ${period === '7d' ? 7 : period === '30d' ? 30 : 90} يوم`} color="#10B981" icon={<TrendingUp size={18} />} />
         <MetricCard label="أجهزة متصلة" value={loading ? '...' : metrics.activeDevices.toLocaleString('ar')} sub="الآن" color="#2563EB" icon={<Smartphone size={18} />} />
-        <MetricCard label="رسائل مرسلة" value={loading ? '...' : metrics.totalMessages.toLocaleString('ar')} sub={`آخر ${period === '7d' ? 7 : period === '30d' ? 30 : 90} يوم`} color="#F59E0B" icon={<MessageSquare size={18} />} change={22} />
+        <MetricCard label="رسائل مرسلة" value={loading ? '...' : metrics.totalMessages.toLocaleString('ar')} sub={`آخر ${period === '7d' ? 7 : period === '30d' ? 30 : 90} يوم`} color="#F59E0B" icon={<MessageSquare size={18} />} />
         <MetricCard label="اشتراكات نشطة" value={loading ? '...' : metrics.activeSubs.toLocaleString('ar')} sub="trial + active" color="#EC4899" icon={<Calendar size={18} />} />
-        <MetricCard label="إيرادات المنصة" value={loading ? '...' : `${metrics.revenue.toLocaleString('ar')} ﷼`} sub="من الاشتراكات" color="#10B981" icon={<DollarSign size={18} />} change={15} />
+        <MetricCard label="إيرادات المنصة" value={loading ? '...' : `${metrics.revenue.toLocaleString('ar')} ﷼`} sub="من الاشتراكات" color="#10B981" icon={<DollarSign size={18} />} />
       </div>
 
       {/* Charts Row 1 */}

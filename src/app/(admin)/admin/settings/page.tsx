@@ -111,7 +111,7 @@ export default function AdminSettingsPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '780px' }}>
         {/* === Platform === */}
         <Section icon={<Globe size={16} />} title="إعدادات المنصة">
-          <Field label="اسم المنصة" value={settings.platform_name} onChange={(v) => update('platform_name', v)} placeholder="Tsab Bot" />
+          <Field label="اسم المنصة" value={settings.platform_name} onChange={(v) => update('platform_name', v)} placeholder="Sends Bot" />
           <FileUpload
             label="شعار المنصة (Logo)"
             value={settings.platform_logo_url}

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 export default function AdminPage() {
-  const [stats, setStats] = useState({ users: 0, newToday: 0, activeDevices: 0, totalDevices: 0, messagesToday: 0, messagesMonth: 0, revenueToday: 0, revenueMonth: 0 })
+  const [stats, setStats] = useState({ users: 0, newToday: 0, activeDevices: 0, totalDevices: 0, messagesToday: 0, messagesMonth: 0, revenueToday: 0, revenueMonth: 0, activeSubs: 0 })
   const [planDist, setPlanDist] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -37,6 +37,7 @@ export default function AdminPage() {
         messagesMonth: msgsMonth.count || 0,
         revenueToday: revToday,
         revenueMonth: revMonth,
+        activeSubs: subs.count || 0,
       })
 
       const planCounts: Record<string, number> = {}
@@ -55,7 +56,7 @@ export default function AdminPage() {
     { label: 'إجمالي المستخدمين', value: stats.users, sub: `+${stats.newToday} اليوم`, color: '#7C3AED', icon: <Users size={20} /> },
     { label: 'الأجهزة المتصلة', value: stats.activeDevices, sub: `من ${stats.totalDevices} إجمالي`, color: '#10B981', icon: <Smartphone size={20} /> },
     { label: 'رسائل اليوم', value: stats.messagesToday, sub: `${stats.messagesMonth.toLocaleString('ar')} هذا الشهر`, color: '#2563EB', icon: <MessageSquare size={20} /> },
-    { label: 'اشتراكات نشطة', value: planDist.reduce((s, p) => s + p.value, 0), sub: 'trial + active', color: '#F59E0B', icon: <Crown size={20} /> },
+    { label: 'اشتراكات نشطة', value: stats.activeSubs, sub: 'trial + active', color: '#F59E0B', icon: <Crown size={20} /> },
     { label: 'إيرادات اليوم', value: `${stats.revenueToday} ريال`, sub: 'من الاشتراكات الجديدة', color: '#10B981', icon: <DollarSign size={20} /> },
     { label: 'إيرادات الشهر', value: `${stats.revenueMonth} ريال`, sub: 'إجمالي الشهر', color: '#7C3AED', icon: <DollarSign size={20} /> },
   ]

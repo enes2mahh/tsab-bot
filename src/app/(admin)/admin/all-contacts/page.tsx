@@ -61,6 +61,11 @@ export default function AdminAllContactsPage() {
   const [filterUser, setFilterUser] = useState('')
   const [exportOpen, setExportOpen] = useState(false)
 
+  // إعادة الصفحة للبداية عند تغيير الفلاتر
+  useEffect(() => {
+    setPage(0)
+  }, [search, filterCountry, filterSource, filterUser])
+
   useEffect(() => {
     setLoading(true)
     createClient()
@@ -128,7 +133,7 @@ export default function AdminAllContactsPage() {
       <div className="page-flex-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>كل جهات الاتصال</h2>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>جهات اتصال جميع المستخدمين عبر المنصة — {contacts.length.toLocaleString('ar')} رقم</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>جهات اتصال جميع المستخدمين عبر المنصة — {totalCount.toLocaleString('ar')} رقم</p>
         </div>
         <div style={{ position: 'relative' }}>
           <button onClick={() => setExportOpen(!exportOpen)} className="btn-primary">
@@ -147,7 +152,7 @@ export default function AdminAllContactsPage() {
       <div className="grid-4" style={{ marginBottom: '20px' }}>
         <div className="stat-card" style={{ borderTopColor: '#7C3AED' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>إجمالي الأرقام</div>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>{contacts.length.toLocaleString('ar')}</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>{totalCount.toLocaleString('ar')}</div>
         </div>
         <div className="stat-card" style={{ borderTopColor: '#10B981' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>دول مختلفة</div>
