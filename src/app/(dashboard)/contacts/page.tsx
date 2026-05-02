@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { BookOpen, Plus, Search, Import, Download, Trash2, Tag, Phone, X, MessageCircle, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { exportData, type ExportFormat } from '@/lib/export'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Contact {
   id: string; phone: string; name: string | null; email: string | null
@@ -71,6 +72,7 @@ export default function ContactsPage() {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Contact | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchContacts = async (p = page) => {
     setLoading(true)
@@ -87,8 +89,13 @@ export default function ContactsPage() {
   useEffect(() => { fetchContacts(page) }, [page])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('حذف هذه الجهة؟')) return
-    await createClient().from('contacts').delete().eq('id', id)
+    setDeleteConfirm(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('contacts').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchContacts(page)
   }
 
@@ -317,6 +324,15 @@ export default function ContactsPage() {
         </div>
       )}
       {showForm && <ContactForm onClose={() => setShowForm(false)} onSaved={() => { fetchContacts(0); setPage(0) }} existing={editItem} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف جهة الاتصال"
+        description="هل أنت متأكد من حذف هذه الجهة؟ لا يمكن التراجع."
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

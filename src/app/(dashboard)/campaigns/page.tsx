@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Plus, Megaphone, Play, Pause, Square, Trash2, Clock, CheckCircle, XCircle, Loader, ChevronRight, ChevronLeft, X, Upload, Users, FileText, AlertCircle, BarChart2, Image as ImageIcon, FileUp, Video, Search, ChevronDown, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 // ===== TYPES =====
 interface Campaign {
@@ -683,6 +684,7 @@ export default function CampaignsPage() {
   const [loading, setLoading] = useState(true)
   const [showBuilder, setShowBuilder] = useState(false)
   const [statsTarget, setStatsTarget] = useState<Campaign | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchCampaigns = async () => {
     const supabase = createClient()
@@ -695,6 +697,13 @@ export default function CampaignsPage() {
 
   const handleAction = async (id: string, action: string) => {
     await fetch(`/api/campaigns/${id}/${action}`, { method: 'POST' })
+    fetchCampaigns()
+  }
+
+  const confirmDeleteCampaign = async () => {
+    if (!deleteConfirm) return
+    await fetch(`/api/campaigns/${deleteConfirm}`, { method: 'DELETE' })
+    setDeleteConfirm(null)
     fetchCampaigns()
   }
 
@@ -755,7 +764,7 @@ export default function CampaignsPage() {
                           {c.status === 'running' && <button onClick={() => handleAction(c.id, 'pause')} style={{ padding: '6px', background: 'rgba(245,158,11,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#F59E0B' }} title="إيقاف"><Pause size={14} /></button>}
                           {c.status === 'paused' && <button onClick={() => handleAction(c.id, 'resume')} style={{ padding: '6px', background: 'rgba(37,99,235,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#60A5FA' }} title="استئناف"><Play size={14} /></button>}
                           {['running', 'paused'].includes(c.status) && <button onClick={() => handleAction(c.id, 'stop')} style={{ padding: '6px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#EF4444' }} title="إيقاف نهائي"><Square size={14} /></button>}
-                          <button onClick={async () => { if (confirm('حذف الحملة؟')) { await fetch(`/api/campaigns/${c.id}`, { method: 'DELETE' }); fetchCampaigns() } }} style={{ padding: '6px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#EF4444' }} title="حذف"><Trash2 size={14} /></button>
+                          <button onClick={() => setDeleteConfirm(c.id)} style={{ padding: '6px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#EF4444' }} title="حذف"><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>
@@ -769,6 +778,15 @@ export default function CampaignsPage() {
 
       {showBuilder && <CampaignBuilder onClose={() => setShowBuilder(false)} onCreated={fetchCampaigns} />}
       {statsTarget && <StatsModal campaign={statsTarget} onClose={() => setStatsTarget(null)} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الحملة"
+        description="هل أنت متأكد من حذف هذه الحملة؟ لا يمكن التراجع."
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteCampaign}
+        onCancel={() => setDeleteConfirm(null)}
+      />
       <style jsx global>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
     </div>
   )

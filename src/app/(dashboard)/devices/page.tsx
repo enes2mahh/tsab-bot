@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Smartphone, Settings, RefreshCw, Trash2, X, CheckCircle, Wifi, WifiOff, AlertCircle, ExternalLink, Bot } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Device {
   id: string
@@ -415,6 +416,7 @@ export default function DevicesPage() {
   const [qrDeviceId, setQrDeviceId] = useState<string | null>(null)
   const [aiDevice, setAiDevice] = useState<Device | null>(null)
   const [deviceLimit, setDeviceLimit] = useState(3)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchDevices = async () => {
     const supabase = createClient()
@@ -452,9 +454,12 @@ export default function DevicesPage() {
     fetchDevices()
   }
 
-  const handleDelete = async (deviceId: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الجهاز؟')) return
-    await fetch(`/api/devices/${deviceId}`, { method: 'DELETE' })
+  const handleDelete = (deviceId: string) => setDeleteConfirm(deviceId)
+
+  const confirmDeleteDevice = async () => {
+    if (!deleteConfirm) return
+    await fetch(`/api/devices/${deleteConfirm}`, { method: 'DELETE' })
+    setDeleteConfirm(null)
     fetchDevices()
   }
 
@@ -650,6 +655,15 @@ export default function DevicesPage() {
         />
       )}
       {aiDevice && <AISettingsModal device={aiDevice} onClose={() => setAiDevice(null)} onSaved={fetchDevices} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الجهاز"
+        description="هل أنت متأكد من حذف هذا الجهاز؟ ستنقطع جلسة واتساب المرتبطة به."
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteDevice}
+        onCancel={() => setDeleteConfirm(null)}
+      />
 
       <style jsx global>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

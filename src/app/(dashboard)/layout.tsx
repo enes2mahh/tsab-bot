@@ -6,6 +6,8 @@ import { Menu, X } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { ImpersonateBanner } from '@/components/layout/ImpersonateBanner'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { createClient } from '@/lib/supabase/client'
 
 const pageTitles: Record<string, string> = {
@@ -56,6 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      <OfflineIndicator />
       <ImpersonateBanner />
 
       {/* Mobile toggle button */}
@@ -83,7 +86,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           userName={user?.name}
           userEmail={user?.email}
         />
-        <main style={{ padding: '24px' }}>{children}</main>
+        <main style={{ padding: '24px' }}>
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </div>
     </div>
   )

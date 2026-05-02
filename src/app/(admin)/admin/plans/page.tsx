@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Star, X, Save, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Plan {
   id: string; name: string; name_ar: string; slug: string; price: number
@@ -142,6 +143,7 @@ export default function AdminPlansPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editPlan, setEditPlan] = useState<Plan | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchPlans = async () => {
     const { data } = await createClient()
@@ -154,9 +156,12 @@ export default function AdminPlansPage() {
 
   useEffect(() => { fetchPlans() }, [])
 
-  const deletePlan = async (id: string) => {
-    if (!confirm('حذف هذه الخطة؟ تأكد أنه لا يوجد مستخدمون عليها.')) return
-    await createClient().from('plans').delete().eq('id', id)
+  const deletePlan = (id: string) => setDeleteConfirm(id)
+
+  const confirmDeletePlan = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('plans').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchPlans()
   }
 
@@ -251,6 +256,15 @@ export default function AdminPlansPage() {
           onSaved={fetchPlans}
         />
       )}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الخطة"
+        description="هل أنت متأكد؟ تأكد أنه لا يوجد مستخدمون على هذه الخطة."
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeletePlan}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

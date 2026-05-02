@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Layout, Plus, Trash2, Edit, Copy, CheckCircle, X, ChevronDown, Tag, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { exportData, type ExportColumn } from '@/lib/export'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Template {
   id: string; name: string; content: string; category: string | null; uses_count: number; created_at: string
@@ -114,6 +115,7 @@ export default function TemplatesPage() {
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState('الكل')
   const [seeded, setSeeded] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchTemplates = async () => {
     const supabase = createClient()
@@ -143,9 +145,12 @@ export default function TemplatesPage() {
     await createClient().from('templates').update({ uses_count: (t.uses_count || 0) + 1 }).eq('id', t.id)
   }
 
-  const deleteTemplate = async (id: string) => {
-    if (!confirm('حذف هذا القالب؟')) return
-    await createClient().from('templates').delete().eq('id', id)
+  const deleteTemplate = (id: string) => setDeleteConfirm(id)
+
+  const confirmDeleteTemplate = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('templates').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchTemplates()
   }
 
@@ -243,6 +248,15 @@ export default function TemplatesPage() {
 
       {showAdd && <TemplateForm onClose={() => setShowAdd(false)} onSaved={fetchTemplates} />}
       {editItem && <TemplateForm onClose={() => setEditItem(null)} onSaved={fetchTemplates} existing={editItem} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف القالب"
+        description="هل أنت متأكد من حذف هذا القالب؟"
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteTemplate}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

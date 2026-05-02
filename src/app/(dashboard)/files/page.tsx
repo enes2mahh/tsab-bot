@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import NextImage from 'next/image'
 import { Upload, FolderOpen, Copy, Trash2, Image, FileText, Film, File, Search, Grid, List } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface FileItem {
   id: string; name: string; original_name: string; public_url: string
@@ -31,6 +32,7 @@ export default function FilesPage() {
   const [uploading, setUploading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const [typeFilter, setTypeFilter] = useState<'all' | 'image' | 'video' | 'document'>('all')
+  const [deleteConfirm, setDeleteConfirm] = useState<FileItem | null>(null)
 
   const fetchFiles = async () => {
     const { data } = await createClient().from('files').select('*').order('created_at', { ascending: false })
@@ -69,11 +71,14 @@ export default function FilesPage() {
     setUploading(false)
   }
 
-  const handleDelete = async (file: FileItem) => {
-    if (!confirm('حذف هذا الملف؟')) return
+  const handleDelete = (file: FileItem) => setDeleteConfirm(file)
+
+  const confirmDeleteFile = async () => {
+    if (!deleteConfirm) return
     const supabase = createClient()
-    await supabase.storage.from('media').remove([file.storage_path])
-    await supabase.from('files').delete().eq('id', file.id)
+    await supabase.storage.from('media').remove([deleteConfirm.storage_path])
+    await supabase.from('files').delete().eq('id', deleteConfirm.id)
+    setDeleteConfirm(null)
     fetchFiles()
   }
 
@@ -210,6 +215,15 @@ export default function FilesPage() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الملف"
+        description={`هل أنت متأكد من حذف "${deleteConfirm?.original_name || 'الملف'}"؟`}
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteFile}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Inbox, Search, X, Mail, Phone, Briefcase, Handshake, MessageSquare, Star, Trash2, Save, Filter } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Inquiry {
   id: string
@@ -42,6 +43,7 @@ export default function AdminInquiriesPage() {
   const [selected, setSelected] = useState<Inquiry | null>(null)
   const [adminNote, setAdminNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchAll = async () => {
     const { data } = await createClient()
@@ -68,11 +70,14 @@ export default function AdminInquiriesPage() {
     setSaving(false)
   }
 
-  const deleteInquiry = async (id: string) => {
-    if (!confirm('حذف هذا الطلب نهائياً؟')) return
-    await createClient().from('inquiries').delete().eq('id', id)
-    setItems((prev) => prev.filter((i) => i.id !== id))
-    if (selected?.id === id) setSelected(null)
+  const deleteInquiry = (id: string) => setDeleteConfirm(id)
+
+  const confirmDeleteInquiry = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('inquiries').delete().eq('id', deleteConfirm)
+    setItems((prev) => prev.filter((i) => i.id !== deleteConfirm))
+    if (selected?.id === deleteConfirm) setSelected(null)
+    setDeleteConfirm(null)
   }
 
   const filtered = items.filter((i) => {
@@ -255,6 +260,15 @@ export default function AdminInquiriesPage() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الطلب"
+        description="هل أنت متأكد من حذف هذا الطلب نهائياً؟"
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteInquiry}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

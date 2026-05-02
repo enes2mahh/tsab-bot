@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Image as ImageIcon, Video, Type, Clock, Plus, Trash2, X, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { FileUpload } from '@/components/FileUpload'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Device { id: string; name: string; phone: string | null; status: string }
 interface Story {
@@ -162,6 +163,8 @@ export default function StoriesPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [tab, setTab] = useState<'pending' | 'sent' | 'failed'>('pending')
+  const [cancelConfirm, setCancelConfirm] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchAll = async () => {
     const supabase = createClient()
@@ -179,15 +182,19 @@ export default function StoriesPage() {
 
   useEffect(() => { fetchAll() }, [])
 
-  const cancelStory = async (id: string) => {
-    if (!confirm('إلغاء هذا الستوري؟')) return
-    await createClient().from('scheduled_stories').update({ status: 'cancelled' }).eq('id', id)
+  const cancelStory = (id: string) => setCancelConfirm(id)
+  const confirmCancelStory = async () => {
+    if (!cancelConfirm) return
+    await createClient().from('scheduled_stories').update({ status: 'cancelled' }).eq('id', cancelConfirm)
+    setCancelConfirm(null)
     fetchAll()
   }
 
-  const deleteStory = async (id: string) => {
-    if (!confirm('حذف هذا الستوري؟')) return
-    await createClient().from('scheduled_stories').delete().eq('id', id)
+  const deleteStory = (id: string) => setDeleteConfirm(id)
+  const confirmDeleteStory = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('scheduled_stories').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchAll()
   }
 
@@ -312,6 +319,24 @@ export default function StoriesPage() {
       )}
 
       {showForm && devices.length > 0 && <StoryForm devices={devices} onClose={() => setShowForm(false)} onSaved={fetchAll} />}
+      <ConfirmDialog
+        open={!!cancelConfirm}
+        title="إلغاء الستوري"
+        description="هل تريد إلغاء هذا الستوري المجدول؟"
+        confirmLabel="إلغاء الستوري"
+        variant="warning"
+        onConfirm={confirmCancelStory}
+        onCancel={() => setCancelConfirm(null)}
+      />
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الستوري"
+        description="هل أنت متأكد من حذف هذا الستوري نهائياً؟"
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteStory}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

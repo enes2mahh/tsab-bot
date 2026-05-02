@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Bell, Check, X } from 'lucide-react'
+import { Bell, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Notif {
   id: string
@@ -29,6 +30,7 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const [notifs, setNotifs] = useState<Notif[]>([])
   const [permission, setPermission] = useState<NotificationPermission>('default')
+  const [dismissAllConfirm, setDismissAllConfirm] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const seenIds = useRef<Set<string>>(new Set())
 
@@ -116,10 +118,12 @@ export function NotificationBell() {
     setNotifs((prev) => prev.map((n) => ({ ...n, is_read: true })))
   }
 
-  const dismissAll = async () => {
-    if (!confirm('حذف كل الإشعارات؟')) return
+  const dismissAll = () => setDismissAllConfirm(true)
+
+  const confirmDismissAll = async () => {
     await createClient().from('admin_notifications').delete().lte('created_at', new Date().toISOString())
     setNotifs([])
+    setDismissAllConfirm(false)
   }
 
   const unreadCount = notifs.filter((n) => !n.is_read).length
@@ -235,6 +239,15 @@ export function NotificationBell() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={dismissAllConfirm}
+        title="حذف كل الإشعارات"
+        description="هل أنت متأكد من حذف جميع الإشعارات؟"
+        confirmLabel="حذف الكل"
+        variant="danger"
+        onConfirm={confirmDismissAll}
+        onCancel={() => setDismissAllConfirm(false)}
+      />
     </div>
   )
 }

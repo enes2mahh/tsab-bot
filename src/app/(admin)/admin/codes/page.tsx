@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Copy, Trash2, X, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface ActivationCode {
   id: string; code: string; plan_id: string; plans: any; uses_count: number; max_uses: number
@@ -69,6 +70,7 @@ export default function AdminCodesPage() {
   const [plans, setPlans] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
   const fetchData = async () => {
@@ -95,9 +97,12 @@ export default function AdminCodesPage() {
     fetchData()
   }
 
-  const deleteCode = async (id: string) => {
-    if (!confirm('حذف هذا الكود؟')) return
-    await createClient().from('activation_codes').delete().eq('id', id)
+  const deleteCode = (id: string) => setDeleteConfirm(id)
+
+  const confirmDeleteCode = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('activation_codes').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchData()
   }
 
@@ -146,6 +151,15 @@ export default function AdminCodesPage() {
       </div>
 
       {showForm && <CodeForm plans={plans} onClose={() => setShowForm(false)} onSaved={fetchData} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الكود"
+        description="هل أنت متأكد من حذف هذا الكود؟"
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteCode}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Bot, Trash2, X, Clock, Hash, MessageSquare, AlignLeft, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { exportData, type ExportColumn } from '@/lib/export'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface AutoReply {
   id: string
@@ -120,6 +121,7 @@ export default function AutoReplyPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<AutoReply | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchData = async () => {
     const supabase = createClient()
@@ -139,9 +141,12 @@ export default function AutoReplyPage() {
     fetchData()
   }
 
-  const deleteReply = async (id: string) => {
-    if (!confirm('حذف هذه القاعدة؟')) return
-    await createClient().from('auto_replies').delete().eq('id', id)
+  const deleteReply = (id: string) => setDeleteConfirm(id)
+
+  const confirmDeleteReply = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('auto_replies').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchData()
   }
 
@@ -210,6 +215,15 @@ export default function AutoReplyPage() {
       </div>
 
       {showForm && <AutoReplyForm devices={devices} onClose={() => setShowForm(false)} onSaved={fetchData} existing={editItem} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف قاعدة الرد"
+        description="هل أنت متأكد من حذف هذه القاعدة؟"
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteReply}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sparkles, Plus, Trash2, Save, X, MessageCircle, Bot, TrendingUp, CheckCircle } from 'lucide-react'
+import { Sparkles, Plus, Trash2, Save, X, MessageCircle, Bot, TrendingUp, CheckCircle, Download, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import * as XLSX from 'xlsx'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface FAQ {
   id: string
@@ -106,6 +108,7 @@ export default function FAQsPage() {
   const [showForm, setShowForm] = useState(false)
   const [editFaq, setEditFaq] = useState<FAQ | null>(null)
   const [tab, setTab] = useState<'active' | 'learning'>('active')
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchAll = async () => {
     const supabase = createClient()
@@ -142,9 +145,12 @@ export default function FAQsPage() {
     fetchAll()
   }
 
-  const deleteFaq = async (id: string) => {
-    if (!confirm('حذف هذا السؤال؟')) return
-    await createClient().from('bot_faqs').delete().eq('id', id)
+  const deleteFaq = (id: string) => setDeleteConfirm(id)
+
+  const confirmDeleteFaq = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('bot_faqs').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchAll()
   }
 
@@ -175,6 +181,70 @@ export default function FAQsPage() {
 
   const totalHits = faqs.reduce((s, f) => s + (f.hits_count || 0), 0)
 
+  const exportFAQs = () => {
+    const rows = faqs.map(f => ({
+      'السؤال': f.question_original,
+      'الجواب': f.answer,
+      'الجهاز': devices.find(d => d.id === f.device_id)?.name || f.device_id,
+      'مرات الاستخدام': f.hits_count,
+      'الحالة': f.is_active ? 'نشط' : 'معطّل',
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'FAQs')
+    XLSX.writeFile(wb, 'faqs.xlsx')
+  }
+
+  const importFAQs = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || devices.length === 0) return
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      try {
+        const data = ev.target?.result
+        const wb = XLSX.read(data, { type: 'binary' })
+        const ws = wb.Sheets[wb.SheetNames[0]]
+        const rows = XLSX.utils.sheet_to_json(ws) as Record<string, string>[]
+        const defaultDevice = devices[0].id
+        const existingNorm = new Set(faqs.map(f => f.question_normalized))
+
+        const toInsert = rows
+          .filter(r => r['السؤال'] && r['الجواب'])
+          .map(r => {
+            const q = String(r['السؤال']).trim()
+            const normalized = q.toLowerCase().replace(/[آأإ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/\s+/g, ' ').replace(/[?!.,،؟]+$/, '')
+            return { q, normalized, a: String(r['الجواب']).trim() }
+          })
+          .filter(r => !existingNorm.has(r.normalized))
+          .map(r => ({
+            user_id: user.id,
+            device_id: defaultDevice,
+            question_original: r.q,
+            question_normalized: r.normalized,
+            answer: r.a,
+            source: 'manual' as const,
+            is_active: true,
+          }))
+
+        if (toInsert.length === 0) {
+          alert('لا توجد أسئلة جديدة (الكل موجود مسبقاً)')
+          return
+        }
+        await supabase.from('bot_faqs').insert(toInsert)
+        alert(`تم استيراد ${toInsert.length} سؤال بنجاح`)
+        fetchAll()
+      } catch {
+        alert('خطأ في قراءة الملف. تأكد من أن الملف يحتوي على أعمدة "السؤال" و"الجواب"')
+      }
+    }
+    reader.readAsBinaryString(file)
+    e.target.value = ''
+  }
+
   return (
     <div>
       <div className="page-flex-header">
@@ -183,9 +253,18 @@ export default function FAQsPage() {
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>الردود الذكية بدون استهلاك tokens</p>
         </div>
         {devices.length > 0 && (
-          <button onClick={() => { setEditFaq(null); setShowForm(true) }} className="btn-primary">
-            <Plus size={16} /> سؤال جديد
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={exportFAQs} className="btn-secondary" style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Download size={14} /> تصدير Excel
+            </button>
+            <label className="btn-secondary" style={{ cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Upload size={14} /> استيراد Excel
+              <input type="file" hidden accept=".xlsx,.xls,.csv" onChange={importFAQs} />
+            </label>
+            <button onClick={() => { setEditFaq(null); setShowForm(true) }} className="btn-primary">
+              <Plus size={16} /> سؤال جديد
+            </button>
+          </div>
         )}
       </div>
 
@@ -306,6 +385,15 @@ export default function FAQsPage() {
       )}
 
       {showForm && devices.length > 0 && <FAQForm devices={devices} faq={editFaq} onClose={() => { setShowForm(false); setEditFaq(null) }} onSaved={fetchAll} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف السؤال الشائع"
+        description="هل أنت متأكد من حذف هذا السؤال؟"
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteFaq}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

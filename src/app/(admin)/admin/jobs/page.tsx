@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Briefcase, Plus, Edit2, Trash2, X, Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Job {
   id: string
@@ -139,6 +140,7 @@ export default function AdminJobsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editJob, setEditJob] = useState<Job | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchJobs = async () => {
     const { data } = await createClient().from('jobs').select('*').order('sort_order', { ascending: true })
@@ -153,9 +155,12 @@ export default function AdminJobsPage() {
     fetchJobs()
   }
 
-  const deleteJob = async (id: string) => {
-    if (!confirm('حذف هذه الوظيفة نهائياً؟')) return
-    await createClient().from('jobs').delete().eq('id', id)
+  const deleteJob = (id: string) => setDeleteConfirm(id)
+
+  const confirmDeleteJob = async () => {
+    if (!deleteConfirm) return
+    await createClient().from('jobs').delete().eq('id', deleteConfirm)
+    setDeleteConfirm(null)
     fetchJobs()
   }
 
@@ -224,6 +229,15 @@ export default function AdminJobsPage() {
       )}
 
       {showForm && <JobForm job={editJob} onClose={() => { setShowForm(false); setEditJob(null) }} onSaved={fetchJobs} />}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="حذف الوظيفة"
+        description="هل أنت متأكد من حذف هذه الوظيفة نهائياً؟"
+        confirmLabel="حذف"
+        variant="danger"
+        onConfirm={confirmDeleteJob}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

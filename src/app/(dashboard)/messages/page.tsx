@@ -51,7 +51,8 @@ export default function MessagesPage() {
   const [filter, setFilter] = useState('all')
   const [exportOpen, setExportOpen] = useState(false)
   const [page, setPage] = useState(0)
-  const PAGE_SIZE = 50
+  const [totalCount, setTotalCount] = useState(0)
+  const PAGE_SIZE = 20
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -60,14 +61,15 @@ export default function MessagesPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
-      const { data } = await supabase
+      const { data, count } = await supabase
         .from('messages')
-        .select('*, devices(name, phone)')
+        .select('*, devices(name, phone)', { count: 'exact' })
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
 
       setMessages((data || []) as Message[])
+      if (count !== null) setTotalCount(count)
       setLoading(false)
     }
     fetchMessages()
@@ -113,7 +115,7 @@ export default function MessagesPage() {
       {/* Header */}
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>سجل الرسائل</h2>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{messages.length} رسالة في هذه الصفحة</p>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{totalCount.toLocaleString('ar-SA')} رسالة إجمالاً — صفحة {page + 1} من {Math.max(1, Math.ceil(totalCount / PAGE_SIZE))}</p>
       </div>
 
       {/* Filters */}
@@ -257,11 +259,16 @@ export default function MessagesPage() {
       </div>
 
       {/* Pagination */}
-      {messages.length === PAGE_SIZE && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px' }}>
-          <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="btn-secondary"><ArrowRight size={14} /> السابق</button>
-          <span style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: '13px' }}>صفحة {page + 1}</span>
-          <button onClick={() => setPage(page + 1)} className="btn-secondary">التالي <ArrowLeft size={14} /></button>
+      {totalCount > PAGE_SIZE && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', padding: '10px 14px', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            عرض {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} من {totalCount.toLocaleString('ar-SA')}
+          </span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '13px', opacity: page === 0 ? 0.5 : 1 }}><ArrowRight size={14} /> السابق</button>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', padding: '0 8px' }}>{page + 1} / {Math.ceil(totalCount / PAGE_SIZE)}</span>
+            <button onClick={() => setPage(page + 1)} disabled={(page + 1) * PAGE_SIZE >= totalCount} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '13px', opacity: (page + 1) * PAGE_SIZE >= totalCount ? 0.5 : 1 }}>التالي <ArrowLeft size={14} /></button>
+          </div>
         </div>
       )}
 

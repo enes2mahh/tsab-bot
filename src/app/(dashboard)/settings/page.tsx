@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Settings, Key, RefreshCw, Bell, Clock, Lock, User, Globe, Eye, EyeOff, CheckCircle, XCircle, Mail, Phone, AlertTriangle, ExternalLink, Loader, X, Send, Copy, Webhook } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 // ===== FORGOT PASSWORD MODAL =====
 function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
@@ -150,6 +151,7 @@ export default function SettingsPage() {
   const [resendingEmail, setResendingEmail] = useState(false)
   const [resendDone, setResendDone] = useState(false)
   const [testingWebhook, setTestingWebhook] = useState(false)
+  const [regenerateConfirm, setRegenerateConfirm] = useState(false)
   const [webhookTestResult, setWebhookTestResult] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
@@ -211,7 +213,6 @@ export default function SettingsPage() {
   }
 
   const regenerateApiKey = async () => {
-    if (!confirm('تجديد مفتاح API سيُبطل المفتاح القديم. متأكد؟')) return
     setLoading(true)
     const newKey = 'sends_' + Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(16).padStart(2, '0')).join('')
     const supabase = createClient()
@@ -425,7 +426,7 @@ export default function SettingsPage() {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input className="input-cosmic" value={apiKey} readOnly style={{ flex: 1, direction: 'ltr', fontSize: '12px', letterSpacing: '0.5px' }} />
                   <button onClick={() => copyText(apiKey, 'apikey')} className="btn-secondary" style={{ padding: '10px 14px', minWidth: '70px' }}>{copied === 'apikey' ? <CheckCircle size={14} color="#10B981" /> : <Copy size={14} />}</button>
-                  <button onClick={regenerateApiKey} disabled={loading} className="btn-secondary" style={{ padding: '10px 14px' }} title="تجديد"><RefreshCw size={14} /></button>
+                  <button onClick={() => setRegenerateConfirm(true)} disabled={loading} className="btn-secondary" style={{ padding: '10px 14px' }} title="تجديد"><RefreshCw size={14} /></button>
                 </div>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>استخدمه في الـ Header: <code style={{ background: 'var(--bg-secondary)', padding: '1px 6px', borderRadius: '4px', direction: 'ltr', display: 'inline-block' }}>Authorization: Bearer {'<key>'}</code></p>
               </div>
@@ -523,6 +524,16 @@ export default function SettingsPage() {
       </div>
 
       {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
+      <ConfirmDialog
+        open={regenerateConfirm}
+        title="تجديد مفتاح API"
+        description="سيتم إلغاء المفتاح الحالي ولن يعمل في أي تطبيقات مرتبطة به. هل تريد المتابعة؟"
+        confirmLabel="تجديد"
+        cancelLabel="إلغاء"
+        variant="warning"
+        onConfirm={() => { setRegenerateConfirm(false); regenerateApiKey() }}
+        onCancel={() => setRegenerateConfirm(false)}
+      />
       <style jsx global>{`
         @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
         @media (max-width: 640px) { .settings-grid { grid-template-columns: 1fr !important; } }

@@ -7,6 +7,7 @@ import {
   Copy, ExternalLink, Activity, Globe, Clock, ChevronDown, AlertCircle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface DetailStats {
   devices: number
@@ -60,6 +61,7 @@ export default function AdminUsersPage() {
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
   const [showDangerZone, setShowDangerZone] = useState(false)
+  const [actionConfirm, setActionConfirm] = useState<{ title: string; desc: string; action: () => void; variant?: 'danger' | 'warning' } | null>(null)
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type })
@@ -149,14 +151,22 @@ export default function AdminUsersPage() {
   }
 
   const handleChangeRole = (newRole: string) => {
-    if (!confirm(`تأكيد تغيير الدور إلى ${newRole === 'admin' ? 'أدمن' : 'مستخدم عادي'}؟`)) return
-    callApi('change_role', { role: newRole })
+    setActionConfirm({
+      title: 'تغيير الدور',
+      desc: `تغيير الدور إلى "${newRole === 'admin' ? 'أدمن كامل' : newRole === 'support' ? 'دعم فني' : 'مستخدم عادي'}"؟`,
+      action: () => callApi('change_role', { role: newRole }),
+      variant: 'warning',
+    })
   }
 
   const handleBan = () => {
-    const action = selectedUser?.is_banned ? 'إلغاء حظر' : 'حظر'
-    if (!confirm(`تأكيد ${action} هذا المستخدم؟`)) return
-    callApi('toggle_ban')
+    const isBanned = selectedUser?.is_banned
+    setActionConfirm({
+      title: isBanned ? 'إلغاء الحظر' : 'حظر المستخدم',
+      desc: isBanned ? 'سيتمكن المستخدم من الدخول مجدداً.' : 'لن يتمكن المستخدم من تسجيل الدخول.',
+      action: () => callApi('toggle_ban'),
+      variant: isBanned ? 'warning' : 'danger',
+    })
   }
 
   const handleChangePlan = () => {
@@ -167,17 +177,28 @@ export default function AdminUsersPage() {
   const handleExtend = () => callApi('extend', { days: extendDays })
   const handleAddMessages = () => callApi('add_messages', { count: addMessages })
   const handleResetMessages = () => {
-    if (!confirm('إعادة عدّاد الرسائل لـ 0؟')) return
-    callApi('reset_messages')
+    setActionConfirm({
+      title: 'إعادة تعيين عدّاد الرسائل',
+      desc: 'سيتم إعادة عدّاد الرسائل إلى 0. هل أنت متأكد؟',
+      action: () => callApi('reset_messages'),
+      variant: 'warning',
+    })
   }
   const handleCancelSubscription = () => {
-    if (!confirm('إلغاء اشتراك هذا المستخدم؟')) return
-    callApi('cancel_subscription')
+    setActionConfirm({
+      title: 'إلغاء الاشتراك',
+      desc: 'سيتم إلغاء اشتراك هذا المستخدم فوراً.',
+      action: () => callApi('cancel_subscription'),
+      variant: 'danger',
+    })
   }
   const handleDelete = () => {
-    if (!confirm(`⚠️ حذف نهائي للحساب: ${selectedUser?.email}\nهذا الإجراء لا يمكن التراجع عنه. متأكد؟`)) return
-    if (!confirm('تأكيد ثاني — كل بيانات المستخدم ستُحذف. متأكد 100%؟')) return
-    callApi('delete_user').then(() => setSelectedUser(null))
+    setActionConfirm({
+      title: `حذف الحساب نهائياً`,
+      desc: `⚠️ سيتم حذف كل بيانات "${selectedUser?.email}" بما فيها الأجهزة والرسائل والحملات. لا يمكن التراجع عن هذا الإجراء.`,
+      action: () => callApi('delete_user').then(() => setSelectedUser(null)),
+      variant: 'danger',
+    })
   }
 
   const handleResetPassword = async () => {
@@ -517,6 +538,16 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!actionConfirm}
+        title={actionConfirm?.title || ''}
+        description={actionConfirm?.desc}
+        confirmLabel="تأكيد"
+        variant={actionConfirm?.variant || 'danger'}
+        onConfirm={() => { actionConfirm?.action(); setActionConfirm(null) }}
+        onCancel={() => setActionConfirm(null)}
+      />
     </div>
   )
 }
